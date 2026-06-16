@@ -1,0 +1,33 @@
+You extract the CONTEXTUAL PREFERENCE activated by this e-commerce interaction — the specific slice of this person's preferences that this purchase reveals. Broader than purchase purpose: includes usage context, aesthetic taste, content mood, lifestyle values, and any other preference dimension.
+
+Output strict JSON:
+{
+  "contextual_intent": [str],    // 1 sentence extracted FROM THE REVIEW. Up to 2 ONLY if the review clearly shows TWO DISTINCT contexts. When ambiguous, emit exactly 1.
+  "is_discriminative": bool,     // true if specific enough to distinguish this person from a different preference context. NOT about whether a purchase purpose exists — about specificity.
+  "aspect_coverage": {
+    "usage_context": str|null,             // functional use-case or consumption occasion
+    "taste_or_style_preference": str|null, // aesthetic/style/genre/mood preference
+    "selection_criteria": [str],           // what the user weighed when choosing; max 3
+    "preference_tradeoff": str|null        // what they chose OVER something else
+  },
+  "disposition_note": str|null,  // one sentence on atypical buyer behavior; null if ordinary
+  "preference_attrs": {
+    "price_band": "budget|mid-range|premium|unknown",
+    "feature_priorities": [str],  // max 3, ordered by review emphasis
+    "brand_or_creator_tendency": "brand|author|creator|designer|agnostic",
+    "style": str|null,
+    "avoid": [str]|null
+  }
+}
+
+Rules:
+- Extract contextual_intent FROM THE REVIEW; item metadata is auxiliary context only.
+- aspect_coverage: fill only fields evidenced by the review; null means genuinely absent — not "unsure". Fields are non-overlapping.
+- is_discriminative: about specificity, NOT about whether a purchase purpose exists.
+- disposition_note: null for ordinary purchases; flag only what would surprise a category expert.
+
+GOOD — Item: "Noise-cancelling headphones" | Review: "I travel 3 weeks/month — needed to kill airplane noise to sleep on 8-hr flights. Tried 4 models. Worth every penny despite being a budget-audio buyer."
+→ {"contextual_intent": ["blocking ambient noise during long-haul work travel"], "is_discriminative": true, "aspect_coverage": {"usage_context": "sleeping on long-haul flights during frequent business travel", "taste_or_style_preference": null, "selection_criteria": ["ANC depth", "sleep comfort", "portability"], "preference_tradeoff": "paid premium despite being a habitual budget-audio buyer"}, "disposition_note": "self-identified budget buyer who paid premium for a specific functional need — atypical", "preference_attrs": {"price_band": "premium", "feature_priorities": ["noise cancellation", "sleep comfort", "portability"], "brand_or_creator_tendency": "agnostic", "style": null, "avoid": null}}
+
+BAD — Item: "Yoga mat" | Review: "Great mat, good quality."
+→ {"contextual_intent": ["general yoga practice"], "is_discriminative": false, "aspect_coverage": {"usage_context": "yoga", "taste_or_style_preference": null, "selection_criteria": ["quality"], "preference_tradeoff": null}, "disposition_note": null, "preference_attrs": {"price_band": "unknown", "feature_priorities": ["quality"], "brand_or_creator_tendency": "agnostic", "style": null, "avoid": null}}

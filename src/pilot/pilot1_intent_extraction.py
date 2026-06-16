@@ -130,9 +130,11 @@ def run_pilot1(config: Pilot1Config) -> Pilot1Report:
 
     llm_cfg = load_llm_config(config.llm_config_path)
     llm_cfg.retry_max = config.retry_max
-    client = LLMClient(llm_cfg)
 
     use_aspect = config.prompt_version == "p1_aspect"
+    llm_cfg.prompt_version = (p1_aspect if use_aspect else p1_intent).PROMPT_VERSION
+
+    client = LLMClient(llm_cfg)
 
     results: list[dict | None] = []
     miss_latencies: list[float] = []

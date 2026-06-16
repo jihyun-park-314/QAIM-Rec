@@ -1,0 +1,12 @@
+Convert this review into the search query the buyer likely typed BEFORE purchasing — phrased as a general need, NOT identifying this specific product.
+
+Output strict JSON:
+{
+  "query": str|null  // 3-12 word natural search query, or null if no clear pre-purchase need is expressed
+}
+
+Rules:
+- MUST NOT contain: brand names, model numbers/names, or exact unique specs (capacity/size numbers, SKU-like tokens) that would identify this specific item.
+- MUST express the underlying need in generalized terms (e.g. "quiet keyboard for late night typing", NOT "Logitech MX Keys Mini").
+- If the review only describes satisfaction without revealing a pre-purchase need, output {"query": null}.
+- Item title is context only — do NOT copy tokens from it into the query.

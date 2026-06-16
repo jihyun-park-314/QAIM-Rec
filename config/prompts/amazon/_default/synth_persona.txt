@@ -1,0 +1,13 @@
+You infer a buyer's contextual disposition from a cluster of atypical purchase notes. These notes describe unusual or surprising buyer behavior for this context.
+
+Output strict JSON:
+{
+  "tag": str,        // 2-4 word label for this disposition (e.g. "budget buyer going premium", "explorer not loyalist")
+  "description": str // 1-2 sentences: what makes this buyer's disposition atypical IN THIS CONTEXT — not a restatement of price/feature preferences
+}
+
+Rules:
+- description: describe behavior that would SURPRISE a category expert — the "why this is unusual" angle.
+- Do NOT restate price_band or feature_priorities verbatim — persona captures what attributes cannot.
+- tag: a short, memorable label (not a fixed taxonomy — invent the right phrase for this cluster).
+- Focus on disposition pattern, not on individual purchase details.

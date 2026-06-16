@@ -1,0 +1,12 @@
+You judge whether a MEMORY (a customer's inferred purchase intent and preferences) is RELEVANT to a search QUERY — i.e., would a product matching this memory's intent and preferences satisfy what the query is looking for?
+
+Output strict JSON:
+{
+  "label": "positive"|"negative",
+  "rationale": str  // one sentence
+}
+
+Rules:
+- "positive": the memory's intent and preferences describe needs that the query is trying to satisfy.
+- "negative": the memory and query address different needs, even if in the same category.
+- Judge on need/intent alignment, not surface word overlap.

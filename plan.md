@@ -54,9 +54,20 @@
 
 ```
 QAIM-Rec/
+├── config/
+│   └── prompts/{dataset}/{domain}/{prompt}.txt  # 외부화된 LLM 프롬프트
+│       ├── _default/              # 공통 기본값 (도메인 오버라이드 없으면 이 파일 사용)
+│       │   ├── p1_base.txt
+│       │   ├── p1_aspect.txt
+│       │   ├── p2_pseudo_query.txt
+│       │   ├── p3_align_judge.txt
+│       │   ├── synth_intent_attr.txt
+│       │   └── synth_persona.txt
+│       └── {domain}/              # 도메인별 오버라이드 (있으면 _default 대신 사용)
+│
 ├── configs/                     # 모든 단계의 실험 설정 (yaml), 시드 포함
 │   ├── data/{category}.yaml
-│   ├── llm/{p1,p2,p3}.yaml       # 모델명, temperature, self-consistency T 등
+│   ├── llm/{p1,p1_aspect,p2,p3}.yaml  # 모델명, temperature, self-consistency T 등
 │   ├── memory/bank.yaml          # 클러스터링/K 설정
 │   ├── model/{sasrec,encoder,projector}.yaml
 │   ├── train/{align,hybrid}.yaml

@@ -28,11 +28,20 @@ def _iter_jsonl(path: str):
 
 
 def _review_text(row: dict) -> str:
-    return row.get("text") or row.get("reviewText") or ""
+    return (
+        row.get("text")
+        or row.get("review_text")
+        or row.get("content")
+        or row.get("reviewText")
+        or ""
+    )
 
 
-def _parent_asin(row: dict) -> str:
-    return row.get("parent_asin") or row.get("asin") or row.get("parentAsin") or ""
+def _parent_asin(row: dict) -> str | None:
+    """Returns parent_asin if present, else None. Falls back to asin is NOT allowed
+    (asin is the variant ASIN, not the parent — plan.md M0: skip if parent_asin missing)."""
+    pa = row.get("parent_asin") or row.get("parentAsin")
+    return pa or None
 
 
 def _meta_asin(row: dict) -> str:
@@ -52,18 +61,18 @@ def _meta_price(row: dict) -> str:
 
 def _meta_brand(row: dict) -> str:
     return (
-        row.get("store")
-        or row.get("brand")
+        row.get("brand")
+        or row.get("store")
         or (row.get("details") or {}).get("Brand", "")
         or "unknown"
     )
 
 
-def _meta_category(row: dict) -> str:
-    c = row.get("main_category") or row.get("categories")
+def _meta_category(row: dict, config_category: str = "") -> str:
+    c = row.get("main_category") or row.get("category") or row.get("categories")
     if isinstance(c, list):
-        return c[0] if c else "unknown"
-    return str(c) if c else "unknown"
+        return c[0] if c else (config_category or "unknown")
+    return str(c) if c else (config_category or "unknown")
 
 
 def _locate(category: str, data_dir: str = "data/raw") -> tuple[str, str]:
@@ -109,8 +118,11 @@ def sample_review_pairs(
         text = _review_text(row)
         if len(text.split()) < min_review_tokens:
             continue
+        pa = _parent_asin(row)
+        if not pa:
+            continue  # skip: no parent_asin — cannot link to item meta (plan.md M0)
         entry = {
-            "_parent_asin": _parent_asin(row),
+            "_parent_asin": pa,
             "rating": row.get("rating") or row.get("overall") or 0,
             "review_text": text,
             "user_id": row.get("user_id") or row.get("reviewerID") or "",
@@ -148,7 +160,7 @@ def sample_review_pairs(
         result.append(
             {
                 "title": _meta_title(meta) or "(unknown)",
-                "category": _meta_category(meta) or category,
+                "category": _meta_category(meta, config_category=category),
                 "brand": _meta_brand(meta),
                 "price": _meta_price(meta),
                 "rating": entry["rating"],

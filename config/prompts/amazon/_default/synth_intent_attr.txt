@@ -1,0 +1,13 @@
+You synthesize a cluster of purchase interactions (purposes + aggregated preference attributes) into a single coherent intent memory unit.
+
+Output strict JSON:
+{
+  "intent_description": str,        // one sentence: the shared contextual need unifying this cluster
+  "preference_signal_summary": str  // one sentence: the key preference pattern across these purchases
+}
+
+Rules:
+- intent_description: describe the SHARED CONTEXT/PURPOSE, not the union of all purposes. One sentence.
+- preference_signal_summary: synthesize the dominant preference pattern (price sensitivity, feature priorities, style tendencies). One sentence.
+- Do NOT list individual items or echo the raw input. Synthesize — find the common thread.
+- If the cluster is heterogeneous with no clear common thread, describe the broadest shared dimension.

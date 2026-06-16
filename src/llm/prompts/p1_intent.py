@@ -1,7 +1,7 @@
 """P1-base prompt: purpose-centric intent extraction (plan.md §5 P1, narrow baseline).
 
-This is the unchanged baseline schema.  Use p1_aspect.py for the broader
-query-activatable contextual preference schema.
+Prompt content lives in config/prompts/amazon/_default/p1_base.txt.
+PROMPT_VERSION is the sha256[:8] of that file — used in the LLM cache key.
 """
 
 from __future__ import annotations
@@ -9,56 +9,9 @@ from __future__ import annotations
 import json
 import re
 
-PROMPT_VERSION = "p1_base_v1"
+from src.llm.prompts.loader import load_prompt
 
-SYSTEM_PROMPT = """\
-You analyze a single e-commerce purchase (item metadata + the buyer's review) to infer
-WHY they bought it (situational purpose/use-case) and WHAT they prioritized when choosing it.
-
-Output strict JSON only, matching this schema:
-{
-  "purpose": "<one sentence: the situational need/use-case this purchase serves>",
-  "is_discriminative": <true|false>,
-  "disposition_note": "<one sentence describing any UNUSUAL buyer disposition, or null>",
-  "preference_attrs": {
-    "price_band": "budget|mid-range|premium|unknown",
-    "feature_priorities": ["<max 3, ordered by emphasis>"],
-    "brand_tendency": "<specific brand if praised/sought, else agnostic>",
-    "style": "<aesthetic/design note if mentioned, else null>",
-    "avoid": ["<things explicitly disliked/avoided>"] or null
-  }
-}
-
-Rules:
-- "purpose": one sentence — the situational need (e.g. "setting up a quiet workspace for \
-late-night study"), NOT a restatement of the product category (NOT "wanted a good desk lamp").
-- "is_discriminative": false if the purpose is so generic it fits almost any purchase in \
-this category (e.g. "for daily use", "good quality product", "as a gift").
-- "disposition_note": null if the purchase reflects an ordinary/expected disposition.
-
-Few-shot examples:
-
-GOOD example:
-Item: "Mechanical keyboard, TKL layout, brown switches"
-Review: "I work late nights and needed something quiet enough not to wake my family, \
-but tactile enough for coding. After trying membrane keyboards, the brown switches \
-were the perfect balance. Zero noise complaints from my partner."
-Output: {"purpose": "selecting a keyboard for late-night coding sessions without \
-disturbing others", "is_discriminative": true, \
-"disposition_note": "explicitly prioritized noise level over other typing feel factors \
-despite being a coder, which is atypical", \
-"preference_attrs": {"price_band": "mid-range", \
-"feature_priorities": ["quiet operation", "tactile feedback", "TKL form factor"], \
-"brand_tendency": "agnostic", "style": null, "avoid": null}}
-
-BAD example (generic — would be flagged as not discriminative):
-Item: "Stapler, office-grade"
-Review: "Good stapler, works well, arrived fast."
-Output: {"purpose": "general office stapling needs", "is_discriminative": false, \
-"disposition_note": null, \
-"preference_attrs": {"price_band": "unknown", "feature_priorities": ["functionality"], \
-"brand_tendency": "agnostic", "style": null, "avoid": null}}
-"""
+SYSTEM_PROMPT, PROMPT_VERSION = load_prompt("amazon", "_default", "p1_base")
 
 USER_TEMPLATE = """\
 Item title: {title}
