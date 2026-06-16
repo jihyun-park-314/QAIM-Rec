@@ -1,0 +1,15 @@
+# LLM config for P1 (intent extraction, plan.md §5 P1).
+# Served via the Ollama API (jhpark-gemma4-server container,
+# http://localhost:11434/api/generate) — replaces the former
+# Qwen2.5-7B-Instruct + bnb-nf4 (transformers) plan.
+
+model_id: gemma4:26b
+api_url: http://localhost:11434/api/generate
+
+temperature: 0.0
+max_new_tokens: 512   # -> request body options.num_predict
+
+prompt_version: p1_v1
+cache_db: data/cache/llm_cache.sqlite
+
+retry_max: 2

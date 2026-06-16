@@ -1,0 +1,12 @@
+# Memory bank clustering config (plan.md §2.2, §3 M2, referenced by Pilot 2).
+
+embedding_model_id: BAAI/bge-base-en-v1.5   # plan.md §7 #8
+
+# Personal (per-user) agglomerative clustering, plan.md §2.2 (A) / §7 #1.
+tau_personal_candidates: [0.3, 0.4, 0.5]    # Pilot 2 sweeps these
+k_min: 2
+k_max: 5
+
+# Population-level prototype clustering, plan.md §2.2 (B).
+tau_global: 0.4
+prototype_count_range: [8, 15]

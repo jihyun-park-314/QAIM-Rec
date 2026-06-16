@@ -1,0 +1,14 @@
+# LLM config for P2 (pseudo-query generation, plan.md §5 P2).
+# Served via the Ollama API (jhpark-gemma4-server container,
+# http://localhost:11434/api/generate).
+
+model_id: gemma4:26b
+api_url: http://localhost:11434/api/generate
+
+temperature: 0.0
+max_new_tokens: 128   # -> request body options.num_predict
+
+prompt_version: p2_v1
+cache_db: data/cache/llm_cache.sqlite
+
+retry_max: 2

@@ -1,0 +1,26 @@
+# Pilot 4: Minimal steering sanity check (plan.md §4 Stage P4).
+# go/no-go: (a) controllability holds AND (b) fraction_users_holds >= 0.50
+# (if (b) is unmeasurable at this scale, it must be deferred to F7/F8 — see
+# Pilot4Report.limitations docstring).
+
+category: Office_Products
+n_users: 200
+top_k: 10
+n_seeds_for_controllability: 2
+
+train_epochs: 5
+sasrec_config:
+  hidden_dim: 64
+  n_blocks: 2
+  n_heads: 1
+  dropout: 0.2
+  max_seq_len: 50
+
+projector_config:
+  hidden_dim: 64
+  n_layers: 2
+
+feature_concat_baseline: true
+
+seed: 42
+output_path: results/pilot/pilot4_report.json

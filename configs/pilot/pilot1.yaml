@@ -1,0 +1,15 @@
+# Pilot 1 legacy config — kept for reference.
+# Use pilot1_base.yaml / pilot1_aspect.yaml for A/B runs.
+# N=200 is FORBIDDEN without explicit approval.
+
+category: Office_Products
+domain_type: functional
+prompt_version: p1_base
+n_samples: 20
+seed: 42
+
+llm_config_path: configs/llm/p1.yaml
+retry_max: 2
+data_dir: data/raw
+
+output_path: results/pilot/pilot1_report.json

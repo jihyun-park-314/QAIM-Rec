@@ -1,0 +1,17 @@
+# LLM config for P3 (query-memory alignment judge, plan.md §5 P3).
+# Served via the Ollama API (jhpark-gemma4-server container,
+# http://localhost:11434/api/generate).
+# Self-consistency: temperature=0.7, T=3 independent calls, majority vote
+# (odd T -> no ties, plan.md §5 P3).
+
+model_id: gemma4:26b
+api_url: http://localhost:11434/api/generate
+
+temperature: 0.7
+self_consistency_t: 3
+max_new_tokens: 128   # -> request body options.num_predict
+
+prompt_version: p3_v1
+cache_db: data/cache/llm_cache.sqlite
+
+retry_max: 2

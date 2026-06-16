@@ -1,0 +1,21 @@
+# Pilot 2: User facet distribution (plan.md §4 Stage P2).
+# go/no-go: ratio of users with K_personal>=2 (or K_personal<2 with a
+# suitable prototype) >= 30%, for some tau_personal.
+# tau_personal_candidates / tau_global / k_min / k_max / prototype_count_range /
+# embedding_model_id mirror configs/memory/bank.yaml.
+
+category: Office_Products
+min_history_length: 8       # L, plan.md §6.2 (hypothesis L=8)
+n_users: 400
+
+tau_personal_candidates: [0.3, 0.4, 0.5]
+k_min: 2
+k_max: 5
+
+tau_global: 0.4
+prototype_count_range: [8, 15]
+
+embedding_model_id: BAAI/bge-base-en-v1.5   # plan.md §7 #8
+
+seed: 42
+output_path: results/pilot/pilot2_report.json

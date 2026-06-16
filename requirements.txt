@@ -1,0 +1,28 @@
+# Core ML
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.3.1
+transformers>=4.43,<5
+accelerate>=0.31
+
+# Embeddings (routing / text encoder init, plan.md §7 #8)
+sentence-transformers>=3.0
+
+# Memory clustering (Pilot 2, agglomerative clustering)
+scikit-learn
+
+# Data / IO
+pandas
+numpy
+datasets        # NOT used for data loading (local JSONL only); kept for future model hub use
+huggingface_hub # NOT used for data download; kept for embedding model pulls only
+pyyaml
+tqdm
+
+# LLM access via the Ollama server (gemma4, jhpark-gemma4-server container,
+# http://localhost:11434/api/generate) — replaces the in-process
+# transformers+bitsandbytes Qwen path.
+requests
+
+# Note: flash-attn is intentionally NOT installed — Turing (sm75, RTX 2080 Ti)
+# does not support FlashAttention-2; transformers falls back to eager/sdpa
+# attention automatically (plan.md §7 #7).

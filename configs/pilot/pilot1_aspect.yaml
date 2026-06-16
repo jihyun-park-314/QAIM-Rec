@@ -1,0 +1,19 @@
+# Pilot 1 — p1_aspect (domain-general contextual preference, new schema)
+# Same category & seed as pilot1_base.yaml for A/B comparison.
+#
+# Smoke test:  python -m src.pilot.pilot1_intent_extraction --config configs/pilot/pilot1_aspect.yaml --n_samples 3
+# Comparison:  python -m src.pilot.pilot1_intent_extraction --config configs/pilot/pilot1_aspect.yaml
+#
+# N=200 is FORBIDDEN without explicit approval.
+
+category: Office_Products    # must match pilot1_base.yaml for valid A/B
+domain_type: functional      # functional | lifestyle | content
+prompt_version: p1_aspect
+n_samples: 20
+seed: 42
+
+llm_config_path: configs/llm/p1_aspect.yaml
+retry_max: 2
+data_dir: data/raw
+
+output_path: results/pilot/pilot1_aspect_Office_Products.json

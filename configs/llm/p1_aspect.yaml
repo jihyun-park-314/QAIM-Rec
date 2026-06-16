@@ -1,0 +1,13 @@
+# LLM config for P1-aspect (domain-general contextual preference, plan.md §5 P1-aspect).
+# Same Ollama backend as p1.yaml — only prompt_version differs.
+
+model_id: gemma4:26b
+api_url: http://localhost:11434/api/generate
+
+temperature: 0.0
+max_new_tokens: 768   # aspect schema is larger than base
+
+prompt_version: p1_aspect_v1
+cache_db: data/cache/llm_cache.sqlite
+
+retry_max: 2

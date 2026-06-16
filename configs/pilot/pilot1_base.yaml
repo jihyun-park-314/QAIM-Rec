@@ -1,0 +1,19 @@
+# Pilot 1 — p1_base (purpose-centric narrow baseline)
+# Run for each available domain category (functional / lifestyle / content).
+#
+# Smoke test:  python -m src.pilot.pilot1_intent_extraction --config configs/pilot/pilot1_base.yaml --n_samples 3
+# Comparison:  python -m src.pilot.pilot1_intent_extraction --config configs/pilot/pilot1_base.yaml
+#
+# N=200 is FORBIDDEN without explicit approval.
+
+category: Office_Products    # change to available category (Pet_Supplies, Amazon_Fashion, etc.)
+domain_type: functional      # functional | lifestyle | content
+prompt_version: p1_base
+n_samples: 20
+seed: 42
+
+llm_config_path: configs/llm/p1.yaml
+retry_max: 2
+data_dir: data/raw
+
+output_path: results/pilot/pilot1_base_Office_Products.json

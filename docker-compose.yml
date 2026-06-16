@@ -1,0 +1,35 @@
+services:
+  qaim-rec:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: qaim-rec:latest
+    container_name: qaim-rec
+    working_dir: /qaim-rec
+    volumes:
+      - .:/qaim-rec
+      - hf-cache:/root/.cache/huggingface
+    environment:
+      - PYTHONPATH=/qaim-rec
+      - HF_HOME=/root/.cache/huggingface
+      - TOKENIZERS_PARALLELISM=false
+      # GPU selection (CUDA_VISIBLE_DEVICES) is left to application code /
+      # runtime env — all GPUs are reserved below so any index is usable.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: all
+    # Host networking so the container can reach the Ollama server
+    # (jhpark-gemma4-server, gemma4 model) at http://localhost:11434.
+    network_mode: "host"
+    shm_size: "8gb"
+    stdin_open: true
+    tty: true
+    # Keep the container alive in the background; use `docker exec` to get a shell.
+    command: sleep infinity
+
+volumes:
+  hf-cache:
