@@ -1,0 +1,844 @@
+{
+  "category": "Books",
+  "domain_type": "content",
+  "prompt_version": "p1_aspect",
+  "n_samples_requested": 20,
+  "n_total": 20,
+  "n_parsed": 20,
+  "parse_success_rate": 1.0,
+  "n_discriminative": 13,
+  "discriminative_ratio": 0.65,
+  "aspect_coverage_ratio": 0.95,
+  "discriminative_and_aspect_valid_ratio": 0.65,
+  "disposition_note_nonnull_ratio": 0.15,
+  "intent_length_stats": {
+    "min": 2,
+    "max": 8,
+    "mean": 4.89,
+    "median": 5
+  },
+  "latency": {
+    "n_cache_miss": 20,
+    "n_cache_hit": 0,
+    "mean_miss_latency_s": 15.756,
+    "median_miss_latency_s": 15.265,
+    "mean_hit_latency_s": 0.0,
+    "estimated_n200_time_s": 3151.3
+  },
+  "retry_stats": {
+    "retry_count": 0,
+    "retry_rate": 0.0,
+    "empty_response_count": 0,
+    "done_reason_length_count": 0,
+    "parse_failure_count": 0,
+    "schema_failure_count": 0,
+    "input_truncation_count": 0,
+    "no_signal_empty_intent_count": 1,
+    "null_string_normalized_count": 0,
+    "final_max_new_tokens_distribution": {
+      "1600": 20
+    },
+    "per_sample_latencies": [
+      16.44,
+      13.641,
+      15.398,
+      14.795,
+      16.324,
+      20.688,
+      15.98,
+      14.722,
+      16.018,
+      16.188,
+      13.81,
+      15.132,
+      14.788,
+      13.446,
+      17.133,
+      14.668,
+      14.79,
+      18.762,
+      12.508,
+      19.895
+    ]
+  },
+  "per_sample_detail": [
+    {
+      "index": 0,
+      "parent_asin": "1732156808",
+      "latency_s": 16.44,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 1,
+      "parent_asin": "0736427163",
+      "latency_s": 13.641,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 2,
+      "parent_asin": "0805087761",
+      "latency_s": 15.398,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 3,
+      "parent_asin": "0805087761",
+      "latency_s": 14.795,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 4,
+      "parent_asin": "0312509200",
+      "latency_s": 16.324,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 5,
+      "parent_asin": "0805087761",
+      "latency_s": 20.688,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 6,
+      "parent_asin": "0972842136",
+      "latency_s": 15.98,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 7,
+      "parent_asin": "1476746583",
+      "latency_s": 14.722,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 8,
+      "parent_asin": "059342297X",
+      "latency_s": 16.018,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 9,
+      "parent_asin": "1735311529",
+      "latency_s": 16.188,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 10,
+      "parent_asin": "1477824758",
+      "latency_s": 13.81,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 11,
+      "parent_asin": "1910884014",
+      "latency_s": 15.132,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 12,
+      "parent_asin": "0688098312",
+      "latency_s": 14.788,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 13,
+      "parent_asin": "0312509219",
+      "latency_s": 13.446,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 14,
+      "parent_asin": "1641849517",
+      "latency_s": 17.133,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 15,
+      "parent_asin": "B002KE5SPG",
+      "latency_s": 14.668,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 16,
+      "parent_asin": "0312509529",
+      "latency_s": 14.79,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 17,
+      "parent_asin": "B0BF1YNRGR",
+      "latency_s": 18.762,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 18,
+      "parent_asin": "1452152160",
+      "latency_s": 12.508,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 19,
+      "parent_asin": "0805210954",
+      "latency_s": 19.895,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    }
+  ],
+  "failed_samples": [],
+  "sample_parent_asins": [
+    "1732156808",
+    "0736427163",
+    "0805087761",
+    "0805087761",
+    "0312509200",
+    "0805087761",
+    "0972842136",
+    "1476746583",
+    "059342297X",
+    "1735311529",
+    "1477824758",
+    "1910884014",
+    "0688098312",
+    "0312509219",
+    "1641849517",
+    "B002KE5SPG",
+    "0312509529",
+    "B0BF1YNRGR",
+    "1452152160",
+    "0805210954"
+  ],
+  "raw_outputs": [
+    {
+      "sample_index": 0,
+      "item_title": "If The Dentist Were An Animal (The Smile Series)",
+      "review_text": "What a whimsical delightful book that entertains and educates!<br />I have used it for storytime and a natural tie in with dental theme.<br />Animals featured in the book are varied and brings a smile",
+      "result": {
+        "contextual_intent": [
+          "educational storytelling with a dental theme"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "storytime for toddlers and preschoolers",
+          "taste_or_style_preference": "whimsical and delightful",
+          "selection_criteria": [
+            "educational value",
+            "animal variety",
+            "thematic relevance"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "educational content",
+            "visual engagement",
+            "thematic tie-in"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": "whimsical",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 1,
+      "item_title": "TOY BOX - FRIENDSHIP",
+      "review_text": "My baby loved them. Excellent qualit. The best I've bought untill now.",
+      "result": {
+        "contextual_intent": [
+          "infant engagement and sensory enjoyment"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "early childhood development",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "material quality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "quality"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 2,
+      "item_title": "Cloudette",
+      "review_text": "My 2 year old niece loves this book. Adorable story about a little cloud- the book is colorful and quality.",
+      "result": {
+        "contextual_intent": [
+          "engaging young children with visual storytelling"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "reading to toddlers",
+          "taste_or_style_preference": "vibrant and cute aesthetics",
+          "selection_criteria": [
+            "visual appeal",
+            "story charm",
+            "print quality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "mid-range",
+          "feature_priorities": [
+            "colorfulness",
+            "story content",
+            "material quality"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "adorable and colorful",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 3,
+      "item_title": "Cloudette",
+      "review_text": "I bought this book as a gift for someone really special ... This little cloud wiil steal your heart and you will cheer her on in her journeys!",
+      "result": {
+        "contextual_intent": [
+          "heartwarming gifting"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "gift for a special person",
+          "taste_or_style_preference": "emotionally engaging/cute",
+          "selection_criteria": [
+            "emotional impact"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "mid-range",
+          "feature_priorities": [
+            "emotional resonance"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "whimsical/heartwarming",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 4,
+      "item_title": "My Little Pocket Library Funny Faces: 6 Books! Dizzy Dragon, Rocky Dog, Millie Cow, Alien Al, Rusty Robot, Charlie Monkey",
+      "review_text": "I chose it because my baby loves robot stories. But he loved most the other books about animals in the collection. They are great, good quality and excelent cost.",
+      "result": {
+        "contextual_intent": [
+          "engaging infants with animal-themed narratives"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "infant reading/storytime",
+          "taste_or_style_preference": "animal characters over sci-fi themes",
+          "selection_criteria": [
+            "character subject matter",
+            "build quality",
+            "value"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "subject matter",
+            "durability",
+            "cost-effectiveness"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "animal-centric",
+          "avoid": [
+            "robot themes"
+          ]
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 5,
+      "item_title": "Cloudette",
+      "review_text": "While not exactly nephologically accurate, this sweet book about a petite cloud is so fun to read.  Whether your pint-sized audience is a small-fry on the small size or not, they will appreciate the j",
+      "result": {
+        "contextual_intent": [
+          "engaging repetitive reading for toddlers and parents"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "repeated bedtime/daily reading for 2-3 year olds",
+          "taste_or_style_preference": "humorous with puns and one-liners",
+          "selection_criteria": [
+            "memorable dialogue",
+            "parental entertainment value"
+          ],
+          "preference_tradeoff": "prioritizes humor over scientific accuracy"
+        },
+        "disposition_note": "user enjoys puns/groan-worthy humor that others might find corny",
+        "preference_attrs": {
+          "price_band": "mid-range",
+          "feature_priorities": [
+            "humor",
+            "catchy dialogue",
+            "child engagement"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": "whimsical/punny",
+          "avoid": [
+            "scientific accuracy"
+          ]
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 6,
+      "item_title": "You Have Chosen to Remember: A Journey of Self-Awareness, Peace of Mind and Joy",
+      "review_text": "This book has brought me closer to the answer that I have been seeking all my life. To know and live the truth is holy freedom and this book generously gives you the truth by teaching you that it has ",
+      "result": {
+        "contextual_intent": [
+          "seeking spiritual self-awareness and inner truth"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "personal spiritual growth",
+          "taste_or_style_preference": "transformative/philosophical content",
+          "selection_criteria": [
+            "emotional depth",
+            "spiritual insight"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "mid-range",
+          "feature_priorities": [
+            "truthfulness",
+            "self-discovery",
+            "inner peace"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": "spiritual/philosophical",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 7,
+      "item_title": "All the Light We Cannot See",
+      "review_text": "I absolutley loved this book! It was so moving and you could feel the characters really come to life through the Authors words. Excellent read. I highly recommend it. I give it 5 stars.",
+      "result": {
+        "contextual_intent": [
+          "emotionally immersive character-driven storytelling"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": "vivid character development",
+          "selection_criteria": [
+            "emotional impact",
+            "prose quality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "character depth",
+            "emotive writing"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": "moving/emotional",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 8,
+      "item_title": "Buy Back Your Time: Get Unstuck, Reclaim Your Freedom, and Build Your Empire",
+      "review_text": "Definitely a MUST read. I knew it would be good but it blew my mind with how actionable it was for any business on any level. Every step has a when to do it, and how to do it which is really refreshin",
+      "result": {
+        "contextual_intent": [
+          "implementing actionable business scaling strategies"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "business management and scaling",
+          "taste_or_style_preference": "highly structured and procedural content",
+          "selection_criteria": [
+            "actionability",
+            "step-by-step guidance",
+            "practicality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "implementation steps",
+            "operational clarity"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": "instructional/procedural",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 9,
+      "item_title": "Octopuses Have Zero Bones: A Counting Book About Our Amazing World (Math for Curious Kids, Illustrated Science for Kids)",
+      "review_text": "Lovely illustrations and accessible learning points. There’s so much to enjoy here and we continue to pick the book up and learn and retain something new and interesting. It’s just delightful.",
+      "result": {
+        "contextual_intent": [
+          "engaging children with accessible science facts"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "repeated shared reading/learning",
+          "taste_or_style_preference": "visually delightful and educational",
+          "selection_criteria": [
+            "illustrative quality",
+            "information accessibility",
+            "retention value"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "mid-range",
+          "feature_priorities": [
+            "illustration",
+            "educational depth",
+            "readability"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "delightful and accessible",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 10,
+      "item_title": "Yellow Crocus",
+      "review_text": "Absolutely loved it!! I couldn't put the book down and was so sad when it was over.",
+      "result": {
+        "contextual_intent": [
+          "immersive, fast-paced reading"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": "high narrative engagement",
+          "selection_criteria": [
+            "page-turner quality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "narrative engagement"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 11,
+      "item_title": "Me Me Mes Messy Me",
+      "review_text": "Bravo !  Interesting and fun to read it's always enjoyable finding books that are stories that you can relate to.  The illustrations are wonderful.",
+      "result": {
+        "contextual_intent": [
+          "finding relatable storytelling with visual appeal"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": "relatable narratives and high-quality illustrations",
+          "selection_criteria": [
+            "narrative relatability",
+            "illustration quality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "story relatability",
+            "visuals"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "engaging and visual",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 12,
+      "item_title": "Horace",
+      "review_text": "We are very satisfied with this book and recommend it for adoptive and non adoptive families. It is a story about love!",
+      "result": {
+        "contextual_intent": [
+          "sharing themes of love with diverse family structures"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "family reading",
+          "taste_or_style_preference": "inclusive and heartwarming content",
+          "selection_criteria": [
+            "thematic relevance to adoption",
+            "emotional resonance"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "inclusive themes",
+            "emotional impact"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": "heartwarming",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 13,
+      "item_title": "My Little Pocket Library Early Learning Fun",
+      "review_text": "They are not the best I've bought but they are nice, however in the Number book there's a spelling error. Instead dice they wrote die!",
+      "result": {
+        "contextual_intent": [
+          "early childhood learning"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "toddler education",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "text accuracy"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "content accuracy"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": null,
+          "avoid": [
+            "typos"
+          ]
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 14,
+      "item_title": "Slaying The Supplement Myths: The Truth Behind The Hype",
+      "review_text": "This is a great book! First of all it was a very easy and quick read (great for busy people). And best of all it helps you understand when you're trying to decide on supplementation how to evaluate a ",
+      "result": {
+        "contextual_intent": [
+          "evaluating supplement efficacy"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "supplement decision-making",
+          "taste_or_style_preference": "efficient and accessible reading style",
+          "selection_criteria": [
+            "readability",
+            "practical utility",
+            "time efficiency"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "ease of reading",
+            "information utility",
+            "speed of consumption"
+          ],
+          "brand_or_creator_tendency": "author",
+          "style": "quick and easy",
+          "avoid": null
+        },
+        "_null_string_normalized": false,
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    }
+  ],
+  "go_nogo": true,
+  "notes": "category=Books | prompt=p1_aspect | N=20 | parse=100% | disc=65% | retry_rate=0% | aspect_valid=95% | NOTE: N=20 is directional only; go/no-go at N=200 (needs approval)."
+}

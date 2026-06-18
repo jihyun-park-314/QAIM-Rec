@@ -1,15 +1,21 @@
-# LLM config for P1 (intent extraction, plan.md §5 P1).
-# Served via the Ollama API (jhpark-gemma4-server container,
-# http://localhost:11434/api/generate) — replaces the former
-# Qwen2.5-7B-Instruct + bnb-nf4 (transformers) plan.
+# LLM config for P1-base (intent extraction, plan.md §5 P1).
+# Served via the Ollama API — /api/chat with messages format.
+#
+# Token budget: first attempt uses max_new_tokens (1200); on any failure
+# (empty / parse error / schema error / done_reason=="length") retries with
+# retry_max_new_tokens (4096).  Never starts at 4096 unconditionally.
 
 model_id: gemma4:26b
-api_url: http://localhost:11434/api/generate
+api_url: http://localhost:11434/api/chat
 
 temperature: 0.0
-max_new_tokens: 512   # -> request body options.num_predict
+max_new_tokens: 1200           # default budget for p1_base
+retry_max_new_tokens: 4096     # retry budget (used only on failure)
+
+think: false                   # disable gemma4 thinking tokens (options.think=false in payload)
+format_json: true              # add format:"json" at top level of Ollama payload
 
 prompt_version: p1_v1
-cache_db: data/cache/llm_cache.sqlite
+cache_db: data/llm_cache/llm_cache.sqlite
 
 retry_max: 2

@@ -1,0 +1,187 @@
+{
+  "category": "Amazon_Fashion",
+  "domain_type": "lifestyle",
+  "prompt_version": "p1_aspect",
+  "n_samples_requested": 3,
+  "n_total": 3,
+  "n_parsed": 3,
+  "parse_success_rate": 1.0,
+  "n_discriminative": 0,
+  "discriminative_ratio": 0.0,
+  "aspect_coverage_ratio": 0.3333,
+  "discriminative_and_aspect_valid_ratio": 0.0,
+  "disposition_note_nonnull_ratio": 0.0,
+  "intent_length_stats": {
+    "min": 3,
+    "max": 3,
+    "mean": 3,
+    "median": 3
+  },
+  "latency": {
+    "n_cache_miss": 0,
+    "n_cache_hit": 3,
+    "mean_miss_latency_s": 0.0,
+    "median_miss_latency_s": 0.0,
+    "mean_hit_latency_s": 0.0,
+    "estimated_n200_time_s": 0.0
+  },
+  "retry_stats": {
+    "retry_count": 0,
+    "retry_rate": 0.0,
+    "empty_response_count": 0,
+    "done_reason_length_count": 0,
+    "parse_failure_count": 0,
+    "schema_failure_count": 0,
+    "input_truncation_count": 0,
+    "final_max_new_tokens_distribution": {
+      "1600": 3
+    },
+    "per_sample_latencies": []
+  },
+  "per_sample_detail": [
+    {
+      "index": 0,
+      "parent_asin": "B07HF4F6LP",
+      "latency_s": 0.0,
+      "cache_hit": true,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 1,
+      "parent_asin": "B00YGFMQC0",
+      "latency_s": 0.0,
+      "cache_hit": true,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 2,
+      "parent_asin": "B0799599X8",
+      "latency_s": 0.0,
+      "cache_hit": true,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    }
+  ],
+  "failed_samples": [],
+  "sample_parent_asins": [
+    "B07HF4F6LP",
+    "B00YGFMQC0",
+    "B0799599X8"
+  ],
+  "raw_outputs": [
+    {
+      "sample_index": 0,
+      "item_title": "Charmed Craft Mother Mom Love Child Charms Elephant Mama Bear Beads for Snake Chain Bracelets",
+      "review_text": "I bought this for my mom for Mother’s Day she loved it so much and it fits on her Pandora charm  bracelet",
+      "result": {
+        "contextual_intent": [
+          "Mother's Day gifting"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "gift for mother",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "compatibility with existing jewelry"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "compatibility"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 1,
+      "item_title": "Set of 10 Tie Clips - Elegant Designs (tc10b) (tie clips)",
+      "review_text": "When I received them 2-3 of them did not open properly. Looks as though they will break easily",
+      "result": {
+        "contextual_intent": [
+          "daily formal wear"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "mechanical durability",
+            "clasp functionality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "durability",
+            "functional mechanism"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "fragile construction",
+            "malfunctioning clasps"
+          ]
+        },
+        "_aspect_coverage_valid": false
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 2,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Did a overall good job, some spots hard to clean",
+      "result": {
+        "contextual_intent": [
+          "general shoe maintenance"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "cleaning efficacy"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "stain removal"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": false
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    }
+  ],
+  "go_nogo": false,
+  "notes": "category=Amazon_Fashion | prompt=p1_aspect | N=3 | parse=100% | disc=0% | retry_rate=0% | aspect_valid=33% | NOTE: N=20 is directional only; go/no-go at N=200 (needs approval)."
+}

@@ -1,0 +1,822 @@
+{
+  "category": "Amazon_Fashion",
+  "domain_type": "lifestyle",
+  "prompt_version": "p1_aspect",
+  "n_samples_requested": 20,
+  "n_total": 20,
+  "n_parsed": 18,
+  "parse_success_rate": 0.9,
+  "n_discriminative": 8,
+  "discriminative_ratio": 0.4444,
+  "aspect_coverage_ratio": 0.7222,
+  "discriminative_and_aspect_valid_ratio": 0.3889,
+  "disposition_note_nonnull_ratio": 0.3333,
+  "intent_length_stats": {
+    "min": 3,
+    "max": 8,
+    "mean": 4.94,
+    "median": 4.5
+  },
+  "latency": {
+    "n_cache_miss": 16,
+    "n_cache_hit": 4,
+    "mean_miss_latency_s": 15.664,
+    "median_miss_latency_s": 14.965,
+    "mean_hit_latency_s": 0.0,
+    "estimated_n200_time_s": 3132.8
+  },
+  "retry_stats": {
+    "retry_count": 2,
+    "retry_rate": 0.1,
+    "empty_response_count": 0,
+    "done_reason_length_count": 0,
+    "parse_failure_count": 0,
+    "schema_failure_count": 4,
+    "input_truncation_count": 0,
+    "final_max_new_tokens_distribution": {
+      "1600": 18,
+      "4096": 2
+    },
+    "per_sample_latencies": [
+      23.513,
+      12.803,
+      14.684,
+      12.354,
+      17.412,
+      18.592,
+      15.056,
+      14.874,
+      13.95,
+      14.193,
+      17.442,
+      14.519,
+      14.441,
+      15.529,
+      15.197,
+      16.07
+    ]
+  },
+  "per_sample_detail": [
+    {
+      "index": 0,
+      "parent_asin": "B07HF4F6LP",
+      "latency_s": 0.0,
+      "cache_hit": true,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 1,
+      "parent_asin": "B00YGFMQC0",
+      "latency_s": 0.0,
+      "cache_hit": true,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 2,
+      "parent_asin": "B0799599X8",
+      "latency_s": 0.0,
+      "cache_hit": true,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 3,
+      "parent_asin": "B0799599X8",
+      "latency_s": 23.513,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 4,
+      "parent_asin": "B00YGFMQC0",
+      "latency_s": 12.803,
+      "cache_hit": false,
+      "retry_count": 1,
+      "final_max_new_tokens": 4096,
+      "done_reason": "stop",
+      "parse_success": false
+    },
+    {
+      "index": 5,
+      "parent_asin": "B0757BG48B",
+      "latency_s": 14.684,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 6,
+      "parent_asin": "B017QEDSAQ",
+      "latency_s": 12.354,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 7,
+      "parent_asin": "B0799599X8",
+      "latency_s": 17.412,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 8,
+      "parent_asin": "B0799599X8",
+      "latency_s": 18.592,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 9,
+      "parent_asin": "B017QEDSAQ",
+      "latency_s": 15.056,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 10,
+      "parent_asin": "B0799599X8",
+      "latency_s": 14.874,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 11,
+      "parent_asin": "B00YGFMQC0",
+      "latency_s": 0.0,
+      "cache_hit": true,
+      "retry_count": 1,
+      "final_max_new_tokens": 4096,
+      "done_reason": "stop",
+      "parse_success": false
+    },
+    {
+      "index": 12,
+      "parent_asin": "B00IYF3YFG",
+      "latency_s": 13.95,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 13,
+      "parent_asin": "B00HRZ04DE",
+      "latency_s": 14.193,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 14,
+      "parent_asin": "B017QEDSAQ",
+      "latency_s": 17.442,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 15,
+      "parent_asin": "B07HF4F6LP",
+      "latency_s": 14.519,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 16,
+      "parent_asin": "B017QEDSAQ",
+      "latency_s": 14.441,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 17,
+      "parent_asin": "B00YGFMQC0",
+      "latency_s": 15.529,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 18,
+      "parent_asin": "B0799599X8",
+      "latency_s": 15.197,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 19,
+      "parent_asin": "B00GQVDUY0",
+      "latency_s": 16.07,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "parse_success": true
+    }
+  ],
+  "failed_samples": [
+    4,
+    11
+  ],
+  "sample_parent_asins": [
+    "B07HF4F6LP",
+    "B00YGFMQC0",
+    "B0799599X8",
+    "B0799599X8",
+    "B00YGFMQC0",
+    "B0757BG48B",
+    "B017QEDSAQ",
+    "B0799599X8",
+    "B0799599X8",
+    "B017QEDSAQ",
+    "B0799599X8",
+    "B00YGFMQC0",
+    "B00IYF3YFG",
+    "B00HRZ04DE",
+    "B017QEDSAQ",
+    "B07HF4F6LP",
+    "B017QEDSAQ",
+    "B00YGFMQC0",
+    "B0799599X8",
+    "B00GQVDUY0"
+  ],
+  "raw_outputs": [
+    {
+      "sample_index": 0,
+      "item_title": "Charmed Craft Mother Mom Love Child Charms Elephant Mama Bear Beads for Snake Chain Bracelets",
+      "review_text": "I bought this for my mom for Mother’s Day she loved it so much and it fits on her Pandora charm  bracelet",
+      "result": {
+        "contextual_intent": [
+          "Mother's Day gifting"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "gift for mother",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "compatibility with existing jewelry"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "compatibility"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 1,
+      "item_title": "Set of 10 Tie Clips - Elegant Designs (tc10b) (tie clips)",
+      "review_text": "When I received them 2-3 of them did not open properly. Looks as though they will break easily",
+      "result": {
+        "contextual_intent": [
+          "daily formal wear"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "mechanical durability",
+            "clasp functionality"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "durability",
+            "functional mechanism"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "fragile construction",
+            "malfunctioning clasps"
+          ]
+        },
+        "_aspect_coverage_valid": false
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 2,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Did a overall good job, some spots hard to clean",
+      "result": {
+        "contextual_intent": [
+          "general shoe maintenance"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "cleaning efficacy"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "stain removal"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": false
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 3,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Works good, nice brush all around solid product for the cost.",
+      "result": {
+        "contextual_intent": [
+          "maintaining footwear cleanliness"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "cost-effectiveness",
+            "product solidity"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "value for money",
+            "durability"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": false
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 5,
+      "item_title": "BellisMira Women's Crochet Crop Top Camisole Lace Vest Spaghetti Strap Halter Bralette White, M",
+      "review_text": "So cute. Will be perfect under a tank top or sheer shirt! I want all the colors!",
+      "result": {
+        "contextual_intent": [
+          "layering piece for sheer or tank-top outfits"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "layering under transparent tops",
+          "taste_or_style_preference": "cute and versatile",
+          "selection_criteria": [
+            "versatility",
+            "aesthetic appeal"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "layering capability",
+            "color variety"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "cute/layered",
+          "avoid": null
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 6,
+      "item_title": "Valuker Women's Down Coat With Fur Hood 90D Parka Puffer Jacket Black-XL",
+      "review_text": "I bought it for my daughter.  She loves the coat.",
+      "result": {
+        "contextual_intent": [
+          "gifting for a child"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": null,
+          "selection_criteria": [],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": false
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 7,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "I was skeptical but decided to give this a try. I absolutely love it. I used it to scrub two pairs of New Balance tennis shoes that I wear daily to work in a busy medical practice. They came out looki",
+      "result": {
+        "contextual_intent": [
+          "maintaining footwear appearance for high-traffic professional environments"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "daily wear in a busy medical practice",
+          "taste_or_style_preference": "pristine/new-looking aesthetic",
+          "selection_criteria": [
+            "cleaning efficacy",
+            "restoration capability"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": "skeptical user converted to repeat buyer by visible restoration results",
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "cleaning power",
+            "sole whitening"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "clean/fresh look",
+          "avoid": null
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 8,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "I've used this product only on my white vans thus far, and am not totally pleased with how they turned out. I bought my vans about 2 weeks ago and they had a couple scuffs from wearing them out. After",
+      "result": {
+        "contextual_intent": [
+          "maintaining the pristine appearance of new white sneakers"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "cleaning recently purchased canvas shoes",
+          "taste_or_style_preference": "bright/glaring white aesthetic",
+          "selection_criteria": [
+            "stain removal",
+            "color preservation"
+          ],
+          "preference_tradeoff": "effective sole cleaning vs. damaging canvas color"
+        },
+        "disposition_note": "user prioritizes color integrity over simple stain removal",
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "stain removal",
+            "color preservation"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "pristine/new look",
+          "avoid": [
+            "yellowing",
+            "dulling"
+          ]
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 9,
+      "item_title": "Valuker Women's Down Coat With Fur Hood 90D Parka Puffer Jacket Black-XL",
+      "review_text": "Very disappointed:( I usually wear a large and was bummed at how tight an extra large was. Had to return it. The buttons on the pockets and side were kinda weird. Too bad, I was really looking forward",
+      "result": {
+        "contextual_intent": [
+          "finding a comfortable fit for outerwear"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "true-to-size fit",
+            "functional hardware"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "sizing accuracy",
+            "button quality"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "tight/constricting fit",
+            "unconventional hardware"
+          ]
+        },
+        "_aspect_coverage_valid": false
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 10,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Extraordinary product. Used it on pair of Vans that I thought were goners and they look like new. Could not be happier. Strongly recommend.",
+      "result": {
+        "contextual_intent": [
+          "restoring heavily worn footwear to near-new condition"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "reviving old/damaged sneakers",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "restorative efficacy"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "cleaning power",
+            "material safety"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 12,
+      "item_title": "Buyinhouse Fashion cross with rose and skull pendant With Chain",
+      "review_text": "Gorgeous necklace, love the detail! Super cure long chain. No issues thus far!",
+      "result": {
+        "contextual_intent": [
+          "wearing detailed gothic-style jewelry"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": null,
+          "taste_or_style_preference": "detailed ornamental aesthetic",
+          "selection_criteria": [
+            "intricate detail",
+            "chain length"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "visual detail",
+            "chain length"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": "gothic/ornamental",
+          "avoid": null
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 13,
+      "item_title": "Forbidden Body Jewelry 14g Surgical Steel 35mm (1 3/8 Inch) Arrow Industrial Barbell",
+      "review_text": "I have really small ears, so it's difficult to find barbells that fit. This one is PERFECT! And arrived right on time.",
+      "result": {
+        "contextual_intent": [
+          "finding jewelry for small ear anatomy"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "piercing wear for small ears",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "anatomical fit",
+            "delivery speed"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "size accuracy",
+            "shipping speed"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 14,
+      "item_title": "Valuker Women's Down Coat With Fur Hood 90D Parka Puffer Jacket Black-XL",
+      "review_text": "The fur would have been better if it was sown on the hood . The hood it's too flimsy . Can't see anything. Can't put sweeter on underneath . The extra large is tight especially under the arms and wais",
+      "result": {
+        "contextual_intent": [
+          "layering for warmth"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "daily wear with heavy layers",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "mobility",
+            "hood visibility",
+            "layering capacity"
+          ],
+          "preference_tradeoff": "retained item only due to gift status"
+        },
+        "disposition_note": "extreme dissatisfaction with fit and construction despite being a gift",
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "mobility",
+            "layering ease",
+            "hood stability"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "tight armholes",
+            "constricting waist",
+            "flimsy hoods"
+          ]
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 15,
+      "item_title": "Charmed Craft Mother Mom Love Child Charms Elephant Mama Bear Beads for Snake Chain Bracelets",
+      "review_text": "Y’all took to damn long I got it may 18th and it was supposed to be for MOTHERS DAY",
+      "result": {
+        "contextual_intent": [
+          "time-sensitive gift giving for Mother's Day"
+        ],
+        "is_discriminative": true,
+        "aspect_coverage": {
+          "usage_context": "Mother's Day gifting",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "delivery speed"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": "Extreme frustration due to missed seasonal deadline",
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "shipping speed"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "delivery delays"
+          ]
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 16,
+      "item_title": "Valuker Women's Down Coat With Fur Hood 90D Parka Puffer Jacket Black-XL",
+      "review_text": "I wear a large. I purchased a xl to wear a sweater underneath. But i gave it to my daughter. The size is misleading. But the  coat is nice my daughter said it is really warm.",
+      "result": {
+        "contextual_intent": [
+          "layering over heavy winter clothing"
+        ],
+        "is_discriminative": false,
+        "aspect_coverage": {
+          "usage_context": "cold weather layering",
+          "taste_or_style_preference": null,
+          "selection_criteria": [
+            "thermal warmth",
+            "sizing for layering"
+          ],
+          "preference_tradeoff": null
+        },
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "warmth",
+            "size accuracy"
+          ],
+          "brand_or_creator_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "misleading sizing"
+          ]
+        },
+        "_aspect_coverage_valid": true
+      },
+      "final_max_new_tokens": 1600,
+      "done_reason": "stop",
+      "retry_count": 0
+    }
+  ],
+  "go_nogo": false,
+  "notes": "category=Amazon_Fashion | prompt=p1_aspect | N=20 | parse=90% | disc=44% | retry_rate=10% | aspect_valid=72% | NOTE: N=20 is directional only; go/no-go at N=200 (needs approval)."
+}

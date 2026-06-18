@@ -640,11 +640,11 @@ P1 A/B의 목적: 어느 도메인에서 discriminative·aspect_coverage·멀티
 **#6. 카테고리 선택 — ✅ 제안 수용 (단, F1a 데이터 볼륨 리포트로 최종 확정, §6.1)**
 - §6.1 제안(Office_Products, Tools_and_Home_Improvement, Pet_Supplies/Electronics) 수용. 착수 전 F1a(§4 Stage F)에서 각 카테고리의 유저/아이템 수, 평균 이력 길이, k-core 필터 후 잔존율을 보고하고 그 결과로 2~3개 최종 확정 — **F1a 리포트에 대한 승인 필요**.
 
-**#7. LLM 선택 (P1~P3) — ✅ 확정 (GPU 정보 확보 후 unblock)**
+**#7. LLM 선택 (P1~P3) — ✅ 확정 (실제 서빙 환경 반영, 2026-06-17 갱신)**
 - 보유 자원: 4× RTX 2080 Ti (11GB VRAM/장, CUDA 12.2, driver 535.274.02, Turing/sm75).
-- **확정**: `Qwen2.5-7B-Instruct`, **양자화 1차값 = bnb-nf4(4-bit)** — Turing(sm75)에서 AWQ 커널 지원이 불안정할 수 있어, AWQ는 향후 Docker 환경 셋업 단계에서 검증 후 대안으로 고려(이 plan 범위 밖). 단일 GPU에 적재(~6-8GB), Pilot1(N=200)은 단일 GPU로 충분.
-- **서빙 비고**: Turing은 FlashAttention-2 미지원(Ampere+ 전용) → vLLM/HF 서빙 시 `xformers` 또는 `eager` 백엔드로 폴백.
-- Pilot1 실행 전 `configs/llm/p1.yaml`의 `model_id` 플레이스홀더(`<TBD-pending-GPU-info>`)를 `Qwen/Qwen2.5-7B-Instruct`(bnb-nf4)로 교체.
+- **확정 (갱신)**: `gemma4:26b` via **Ollama** (http://localhost:11434) — Pilot 1 실행 당시 실제 서빙 중인 모델. 당초 계획(Qwen2.5-7B-Instruct bnb-nf4)은 Turing 환경 셋업 복잡성으로 대체. `configs/llm/p1.yaml` / `p1_aspect.yaml` 모두 이 설정으로 확정.
+- **A/B 동일 모델 보장**: p1_base·p1_aspect 두 config 모두 `model_id: gemma4:26b`, `api_url: http://localhost:11434/api/generate` — prompt만 변수.
+- **N=200 latency 추정**: `estimated_n200_time_s = cache-miss mean latency × 200` — Pilot 1 리포트에 포함.
 
 **#8. 임베딩 모델 (routing/text encoder 초기화)**
 - 후보: `BAAI/bge-base-en-v1.5`, `sentence-transformers/all-mpnet-base-v2`, `Alibaba-NLP/gte-base-en-v1.5`

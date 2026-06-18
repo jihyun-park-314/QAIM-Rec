@@ -6,8 +6,8 @@
 #
 # N=200 is FORBIDDEN without explicit approval.
 
-category: Office_Products    # must match pilot1_base.yaml for valid A/B
-domain_type: functional      # functional | lifestyle | content
+category: Amazon_Fashion     # must match pilot1_base.yaml for valid A/B
+domain_type: lifestyle       # functional | lifestyle | content
 prompt_version: p1_aspect
 n_samples: 20
 seed: 42
@@ -16,4 +16,4 @@ llm_config_path: configs/llm/p1_aspect.yaml
 retry_max: 2
 data_dir: data/raw
 
-output_path: results/pilot/pilot1_aspect_Office_Products.json
+output_path: results/pilot/pilot1_aspect_Amazon_Fashion.json

@@ -6,8 +6,8 @@
 #
 # N=200 is FORBIDDEN without explicit approval.
 
-category: Office_Products    # change to available category (Pet_Supplies, Amazon_Fashion, etc.)
-domain_type: functional      # functional | lifestyle | content
+category: Amazon_Fashion     # available: Amazon_Fashion | Beauty_and_Personal_Care | Books
+domain_type: lifestyle       # functional | lifestyle | content
 prompt_version: p1_base
 n_samples: 20
 seed: 42
@@ -16,4 +16,4 @@ llm_config_path: configs/llm/p1.yaml
 retry_max: 2
 data_dir: data/raw
 
-output_path: results/pilot/pilot1_base_Office_Products.json
+output_path: results/pilot/pilot1_base_Amazon_Fashion.json

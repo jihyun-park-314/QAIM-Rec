@@ -1,0 +1,356 @@
+{
+  "category": "Amazon_Fashion",
+  "domain_type": "lifestyle",
+  "prompt_version": "p1_base",
+  "n_samples_requested": 20,
+  "n_total": 20,
+  "n_parsed": 20,
+  "parse_success_rate": 1.0,
+  "n_discriminative": 7,
+  "discriminative_ratio": 0.35,
+  "aspect_coverage_ratio": -1.0,
+  "discriminative_and_aspect_valid_ratio": -1.0,
+  "disposition_note_nonnull_ratio": 0.4,
+  "intent_length_stats": {
+    "min": 2,
+    "max": 13,
+    "mean": 6.6,
+    "median": 7.0
+  },
+  "latency": {
+    "n_cache_miss": 14,
+    "n_cache_hit": 6,
+    "mean_miss_latency_s": 153.426,
+    "median_miss_latency_s": 148.117,
+    "mean_hit_latency_s": 0.0,
+    "estimated_n200_time_s": 30685.1
+  },
+  "failed_samples": [],
+  "sample_parent_asins": [
+    "B07HF4F6LP",
+    "B00YGFMQC0",
+    "B0799599X8",
+    "B0799599X8",
+    "B00YGFMQC0",
+    "B0757BG48B",
+    "B017QEDSAQ",
+    "B0799599X8",
+    "B0799599X8",
+    "B017QEDSAQ",
+    "B0799599X8",
+    "B00YGFMQC0",
+    "B00IYF3YFG",
+    "B00HRZ04DE",
+    "B017QEDSAQ",
+    "B07HF4F6LP",
+    "B017QEDSAQ",
+    "B00YGFMQC0",
+    "B0799599X8",
+    "B00GQVDUY0"
+  ],
+  "raw_outputs": [
+    {
+      "sample_index": 0,
+      "item_title": "Charmed Craft Mother Mom Love Child Charms Elephant Mama Bear Beads for Snake Chain Bracelets",
+      "review_text": "I bought this for my mom for Mother’s Day she loved it so much and it fits on her Pandora charm  bracelet",
+      "result": {
+        "purpose": "a Mother's Day gift compatible with an existing Pandora charm bracelet",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "Pandora bracelet compatibility",
+            "Mother's Day theme"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 1,
+      "item_title": "Set of 10 Tie Clips - Elegant Designs (tc10b) (tie clips)",
+      "review_text": "When I received them 2-3 of them did not open properly. Looks as though they will break easily",
+      "result": {
+        "purpose": "general use of tie clips",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "reliable opening mechanism",
+            "durability"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "fragile construction"
+          ]
+        }
+      }
+    },
+    {
+      "sample_index": 2,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Did a overall good job, some spots hard to clean",
+      "result": {
+        "purpose": "general shoe cleaning and maintenance",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "cleaning efficacy"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 3,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Works good, nice brush all around solid product for the cost.",
+      "result": {
+        "purpose": "general shoe cleaning and maintenance",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "brush quality",
+            "value for money"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 4,
+      "item_title": "Set of 10 Tie Clips - Elegant Designs (tc10b) (tie clips)",
+      "review_text": "I got an empty bag in my package of 10 that I purchased. Thanks!",
+      "result": {
+        "purpose": "not specified",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 5,
+      "item_title": "BellisMira Women's Crochet Crop Top Camisole Lace Vest Spaghetti Strap Halter Bralette White, M",
+      "review_text": "So cute. Will be perfect under a tank top or sheer shirt! I want all the colors!",
+      "result": {
+        "purpose": "layering under sheer or tank-top style clothing",
+        "is_discriminative": true,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "layering versatility",
+            "color variety"
+          ],
+          "brand_tendency": "agnostic",
+          "style": "crochet/lace aesthetic",
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 6,
+      "item_title": "Valuker Women's Down Coat With Fur Hood 90D Parka Puffer Jacket Black-XL",
+      "review_text": "I bought it for my daughter.  She loves the coat.",
+      "result": {
+        "purpose": "gifting for a family member",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 7,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "I was skeptical but decided to give this a try. I absolutely love it. I used it to scrub two pairs of New Balance tennis shoes that I wear daily to work in a busy medical practice. They came out looki",
+      "result": {
+        "purpose": "restoring the appearance of heavily used daily work footwear to look brand new",
+        "is_discriminative": true,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "sole whitening",
+            "restorative effectiveness"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 8,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "I've used this product only on my white vans thus far, and am not totally pleased with how they turned out. I bought my vans about 2 weeks ago and they had a couple scuffs from wearing them out. After",
+      "result": {
+        "purpose": "removing scuffs and stains to maintain the bright white appearance of new sneakers",
+        "is_discriminative": false,
+        "disposition_note": "product caused canvas material to turn dull and yellowish",
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "stain/scuff removal",
+            "color preservation"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "yellowing",
+            "dulling of canvas"
+          ]
+        }
+      }
+    },
+    {
+      "sample_index": 9,
+      "item_title": "Valuker Women's Down Coat With Fur Hood 90D Parka Puffer Jacket Black-XL",
+      "review_text": "Very disappointed:( I usually wear a large and was bummed at how tight an extra large was. Had to return it. The buttons on the pockets and side were kinda weird. Too bad, I was really looking forward",
+      "result": {
+        "purpose": "general winter wear",
+        "is_discriminative": false,
+        "disposition_note": "encountered significant sizing discrepancy and unusual hardware placement",
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "accurate sizing",
+            "standard button design"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "small/tight sizing",
+            "unusual hardware placement"
+          ]
+        }
+      }
+    },
+    {
+      "sample_index": 10,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Extraordinary product. Used it on pair of Vans that I thought were goners and they look like new. Could not be happier. Strongly recommend.",
+      "result": {
+        "purpose": "restoring heavily soiled sneakers that appeared beyond repair",
+        "is_discriminative": true,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "restorative effectiveness"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 11,
+      "item_title": "Set of 10 Tie Clips - Elegant Designs (tc10b) (tie clips)",
+      "review_text": "I got an empty bag in my package of 10 that I purchased. Thanks!",
+      "result": {
+        "purpose": "not specified",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 12,
+      "item_title": "Buyinhouse Fashion cross with rose and skull pendant With Chain",
+      "review_text": "Gorgeous necklace, love the detail! Super cure long chain. No issues thus far!",
+      "result": {
+        "purpose": "fashion accessorizing",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "intricate detail",
+            "long chain length"
+          ],
+          "brand_tendency": "agnostic",
+          "style": "ornate",
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 13,
+      "item_title": "Forbidden Body Jewelry 14g Surgical Steel 35mm (1 3/8 Inch) Arrow Industrial Barbell",
+      "review_text": "I have really small ears, so it's difficult to find barbells that fit. This one is PERFECT! And arrived right on time.",
+      "result": {
+        "purpose": "finding industrial barbells that accommodate small ear anatomy",
+        "is_discriminative": true,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "fit for small ears",
+            "delivery speed"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      }
+    },
+    {
+      "sample_index": 14,
+      "item_title": "Valuker Women's Down Coat With Fur Hood 90D Parka Puffer Jacket Black-XL",
+      "review_text": "The fur would have been better if it was sown on the hood . The hood it's too flimsy . Can't see anything. Can't put sweeter on underneath . The extra large is tight especially under the arms and wais",
+      "result": {
+        "purpose": "receiving a gift from a family member",
+        "is_discriminative": false,
+        "disposition_note": "retained the item despite significant dissatisfaction due to its status as a gift",
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "room for layering",
+            "unrestricted movement",
+            "sturdy hood construction"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": [
+            "tight fit",
+            "flimsy hoods"
+          ]
+        }
+      }
+    }
+  ],
+  "go_nogo": false,
+  "notes": "category=Amazon_Fashion | prompt=p1_base | N=20 | parse=100% | disc=35% | NOTE: N=20 is directional only; go/no-go at N=200 (needs approval)."
+}

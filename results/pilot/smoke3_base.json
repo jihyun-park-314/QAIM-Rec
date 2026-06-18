@@ -1,0 +1,156 @@
+{
+  "category": "Amazon_Fashion",
+  "domain_type": "lifestyle",
+  "prompt_version": "p1_base",
+  "n_samples_requested": 3,
+  "n_total": 3,
+  "n_parsed": 3,
+  "parse_success_rate": 1.0,
+  "n_discriminative": 0,
+  "discriminative_ratio": 0.0,
+  "aspect_coverage_ratio": -1.0,
+  "discriminative_and_aspect_valid_ratio": -1.0,
+  "disposition_note_nonnull_ratio": 0.0,
+  "intent_length_stats": {
+    "min": 1,
+    "max": 7,
+    "mean": 4,
+    "median": 4
+  },
+  "latency": {
+    "n_cache_miss": 3,
+    "n_cache_hit": 0,
+    "mean_miss_latency_s": 84.735,
+    "median_miss_latency_s": 67.827,
+    "mean_hit_latency_s": 0.0,
+    "estimated_n200_time_s": 16947.0
+  },
+  "retry_stats": {
+    "retry_count": 1,
+    "retry_rate": 0.3333,
+    "empty_response_count": 1,
+    "done_reason_length_count": 0,
+    "parse_failure_count": 0,
+    "schema_failure_count": 0,
+    "final_max_new_tokens_distribution": {
+      "1200": 2,
+      "4096": 1
+    },
+    "per_sample_latencies": [
+      65.355,
+      121.023,
+      67.827
+    ]
+  },
+  "per_sample_detail": [
+    {
+      "index": 0,
+      "parent_asin": "B07HF4F6LP",
+      "latency_s": 65.355,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1200,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 1,
+      "parent_asin": "B00YGFMQC0",
+      "latency_s": 121.023,
+      "cache_hit": false,
+      "retry_count": 1,
+      "final_max_new_tokens": 4096,
+      "done_reason": "stop",
+      "parse_success": true
+    },
+    {
+      "index": 2,
+      "parent_asin": "B0799599X8",
+      "latency_s": 67.827,
+      "cache_hit": false,
+      "retry_count": 0,
+      "final_max_new_tokens": 1200,
+      "done_reason": "stop",
+      "parse_success": true
+    }
+  ],
+  "failed_samples": [],
+  "sample_parent_asins": [
+    "B07HF4F6LP",
+    "B00YGFMQC0",
+    "B0799599X8"
+  ],
+  "raw_outputs": [
+    {
+      "sample_index": 0,
+      "item_title": "Charmed Craft Mother Mom Love Child Charms Elephant Mama Bear Beads for Snake Chain Bracelets",
+      "review_text": "I bought this for my mom for Mother’s Day she loved it so much and it fits on her Pandora charm  bracelet",
+      "result": {
+        "purpose": "celebrating Mother's Day with a sentimental gift",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "budget",
+          "feature_priorities": [
+            "compatibility with Pandora bracelets",
+            "sentimental value"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      },
+      "final_max_new_tokens": 1200,
+      "done_reason": "stop",
+      "retry_count": 0
+    },
+    {
+      "sample_index": 1,
+      "item_title": "Set of 10 Tie Clips - Elegant Designs (tc10b) (tie clips)",
+      "review_text": "When I received them 2-3 of them did not open properly. Looks as though they will break easily",
+      "result": {
+        "purpose": "none",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "durability-related functionality",
+            "smooth opening mechanism"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": []
+        }
+      },
+      "final_max_new_tokens": 4096,
+      "done_reason": "stop",
+      "retry_count": 1
+    },
+    {
+      "sample_index": 2,
+      "item_title": "CleanKicks Shoe Cleaner Kit - Solution & Brush Bundle | Intended for Leather, Mesh, Rubber, Shoe, Sneaker, Boot, Cleat, Heel Care | Essential & Easy To Use | Golf, Tennis, Gym, Running",
+      "review_text": "Did a overall good job, some spots hard to clean",
+      "result": {
+        "purpose": "general maintenance of footwear",
+        "is_discriminative": false,
+        "disposition_note": null,
+        "preference_attrs": {
+          "price_band": "unknown",
+          "feature_priorities": [
+            "cleaning efficacy",
+            "overall cleanliness"
+          ],
+          "brand_tendency": "agnostic",
+          "style": null,
+          "avoid": null
+        }
+      },
+      "final_max_new_tokens": 1200,
+      "done_reason": "stop",
+      "retry_count": 0
+    }
+  ],
+  "go_nogo": false,
+  "notes": "category=Amazon_Fashion | prompt=p1_base | N=3 | parse=100% | disc=0% | retry_rate=33% | NOTE: N=20 is directional only; go/no-go at N=200 (needs approval)."
+}

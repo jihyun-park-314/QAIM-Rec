@@ -1,13 +1,19 @@
 # LLM config for P1-aspect (domain-general contextual preference, plan.md §5 P1-aspect).
-# Same Ollama backend as p1.yaml — only prompt_version differs.
+# Same Ollama backend as p1.yaml — only prompt_version and max_new_tokens differ.
+#
+# Token budget: first attempt uses max_new_tokens (1600); on any failure retries with 4096.
 
 model_id: gemma4:26b
-api_url: http://localhost:11434/api/generate
+api_url: http://localhost:11434/api/chat
 
 temperature: 0.0
-max_new_tokens: 768   # aspect schema is larger than base
+max_new_tokens: 1600           # default budget for p1_aspect (slightly higher than p1_base)
+retry_max_new_tokens: 4096     # retry budget (used only on failure)
+
+think: false                   # disable gemma4 thinking tokens (options.think=false in payload)
+format_json: true              # add format:"json" at top level of Ollama payload
 
 prompt_version: p1_aspect_v1
-cache_db: data/cache/llm_cache.sqlite
+cache_db: data/llm_cache/llm_cache.sqlite
 
 retry_max: 2
