@@ -1,2 +1,6 @@
 data/
 results/
+.cache/
+checkpoints/
+**/__pycache__/
+**/*.pyc

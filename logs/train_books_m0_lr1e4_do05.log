@@ -1,0 +1,14 @@
+[train] category=Books, device=cuda:0
+[train] loading data from data/processed/Books/
+[train] usernum=19979, itemnum=124803
+[epoch   1/200] loss=1.3572  elapsed=9s
+[epoch   2/200] loss=1.2804  elapsed=17s
+[epoch   3/200] loss=1.2385  elapsed=24s
+[epoch   4/200] loss=1.2006  elapsed=32s
+[epoch   5/200] loss=1.1567  elapsed=40s
+[epoch   6/200] loss=1.1106  elapsed=48s
+[epoch   7/200] loss=1.0659  elapsed=56s
+[epoch   8/200] loss=1.0262  elapsed=63s
+[epoch   9/200] loss=0.9912  elapsed=72s
+[epoch  10/200] loss=0.9606  elapsed=79s
+  [eval val] epoch=10
