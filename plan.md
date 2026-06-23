@@ -1,5 +1,25 @@
-# QAIM-Rec: Intent-Memory-Steered SASRec — 설계 문서 (v0.4.2, FINAL)
+# QAIM-Rec: Intent-Memory-Steered SASRec — 설계 문서 (v0.4.5, FINAL)
 
+> **v0.4.5 (Books P1 검증 완료 — 정의·프롬프트·코드·throughput 확정)**:
+> - **정의/프롬프트 lock**: 18건 라벨드 미니셋에서 과보정 케이스(pacing/emotion/series) **10/10 복원**, 경계어("interesting") TRUE 정상, pure-approval/metadata false 정상(조정 17/18). is_discriminative 정의(§v0.4.4)와 `p1_books_b`(variant B, compact 5필드) **확정**.
+> - **코드 수정**: `parse_response()`가 is_discriminative=false & contextual_intent="" 정상응답을 schema_error로 폐기하던 버그 수정.
+> - **throughput 현실**: concurrency는 GPU-saturated라 무의미(c=1 264 vs c=8 310 calls/hr; c=16은 timeout으로 열화). 12b도 26b보다 느림(기검증) → **모델 크기·concurrency 둘 다 throughput 레버 아님**. 병목 = Ollama+26B 단일 인스턴스 GPU 포화.
+> - **추출 규모**: cap=12 → Σ min(eligible_u,12) = **48,243 calls**. c=1(264/hr) 기준 **~7.6일**. c=8 별도 스크립트는 +15%뿐이라 비권장.
+> - **실행 권고**: full 추출을 백그라운드로 띄우고 *그 사이 F3(cluster/synth/prototypes/bank)를 빌드*(추출 비차단). 규모 vs 시간 옵션: (a) 전체 9,807 ~7.6일, (b) ~5k eligible 서브샘플 ~3일, (c) Beauty/ablation 대비 **vLLM tensor-parallel + guided decoding/continuous batching**으로 전환(실질 가속, 인프라 투자).
+>
+> **v0.4.4 (intent 정의 명문화 — is_discriminative 기준 교정)**: Books P1 A/B 분기에서 드러난 *정의 충돌*을 해소(b.txt가 페이싱·감정을 false로 깎던 문제). **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
+> - **Intent의 정의 (QAIM)**: intent = *query로 활성화 가능한 사용자의 독서 모드/선호 축*. 판정 기준은 "이 리뷰가 *질의로 부를 수 있고 아이템 군집과 상관되는 선호 차원*을 드러내는가"이다 — **"이 독자를 같은 장르의 다른 독자와 구별하는가"가 아니다.** QAIM의 대비 축은 *유저 내 intent 간*(예: 같은 유저의 "page-turner 스릴러" vs "느린 문예소설")이지 *유저 간*이 아니다.
+> - **is_discriminative = true**: 페이싱(page-turner/완급), 감정 톤(몰입/위안/감동), 인물 깊이, reader level, 문체, 구조, 상황 맥락, 시리즈 연속성 등 *명명 가능한 선호 차원*이 하나라도 있을 때. **페이싱·감정도 valid intent** — generic하다는 이유로 버리지 않는다.
+> - **is_discriminative = false**: 리뷰가 *대비 차원을 명명하지 못하고* 순수 valence/승인만 담을 때 — 명백 false는 **"loved it","great book","amazing","highly recommend"** 같은 *가치판단어*(무엇을 원했는지가 0), 또는 신호가 metadata에서만 올 때(`grounding_level=metadata_dominant`). **판정 테스트**: "이 표현이 *책들이 갈리는 축*(완급·감정·몰입·인물·레벨·문체·구조·상황맥락·시리즈)을 가리키는가?" → 그렇다면 true. 'engrossing/immersive/interesting' 같은 강도어는 *하드 false 아님* — 몰입(immersion) 축을 함의하면 true, 단순 호감이면 false로 *문맥 판정*. **근거**: 순수 승인의 유일한 신호("이 아이템/장르를 좋아함")는 *이미 백본 SASRec co-occurrence가 포착* — 메모리는 백본이 못 잡는 *맥락 선호 축*을 위한 것이라 승인 재진술은 redundant. false 케이스의 `contextual_intent`는 빈 문자열 `""`로 둔다(코드 §parse_response와 일치).
+> - **steering 효과(선호 축이 얼마나 tight해서 아이템 군집을 좁히는가)는 필터가 아니라 F7/F8 실험·stratification이 측정**한다. generic intent를 *사전에 폐기하지 않는다*(유저 내 대비 + 풍부한 `preference_summary`가 유용성 보존). 비율(0.93/0.97 등)을 타겟하지 않는다 — *정의*가 비율을 정한다.
+> - **프롬프트**: B의 `head+tail` truncation·`metadata-disambiguation-only` 정책은 유지. b.txt의 페이싱/감정 BAD 예시 3개는 *제거*하고 *positive(=true) 예시로 전환*. pure-approval BAD + metadata-driven BAD만 유지.
+>
+> **v0.4.3 (메모리 구축 재설계 — compact-first / K 정직성 / synth 경량화)**: 메모리의 소비자는 routing 임베딩 + steering MLP뿐이라는 원칙에 따라 단순화. **이 블록이 아래 본문의 상충 기술을 우선한다.**
+> - **K 정직성 (k_min 2→1)**: agglomerative **k_min=1**(억지 K≥2 금지). K_personal을 **0(메모리 없음)/1(single-intent)/≥2(multi-intent)** 로 정직히 보고. 본문의 모든 `k_min=2`는 `k_min=1`로 대체. prototype은 부족분 "보충"이 아니라 §2.2(B)·M5의 *명시적 fallback*으로만(`is_prototype=true`) — personal인 척하지 않음. 진짜 cold(신호 없음)는 learnable `[DEFAULT_INTENT]`(v0.4.2).
+> - **P1 schema compact-first (확정 아님 — pilot이 검증)**: 기본 추출은 5필드 `{contextual_intent, preference_summary, evidence_span[], is_discriminative, grounding_level}`로 *축소해 먼저 테스트*. 기존 `aspect_coverage`(4)/`preference_attrs`(5)/`disposition_note`/`persona`/confidence 등급은 **삭제가 아니라**, pilot에서 cluster coherence·query 변별성이 부족할 때 *근거를 갖고 복원*하는 ablation으로 강등(처음부터 12필드로 시작하지 않음). source_text엔 제목·작가 절대 미포함(Books leakage).
+> - **synth 경량화 (deterministic-first)**: cluster→memory는 LLM 재호출 대신 **medoid의 contextual_intent + preference keyword 합집합 → source_text, embedding=centroid**가 기본. LLM synth(intent/persona)는 ablation으로만 — 추출 외 LLM 호출 최소화.
+> - **eval 층화 = K_personal**: results.json의 warm/cold(="eligible 리뷰 ≥1개")는 우리 contribution 층화가 아님 → 폐기하고 **K_personal(0/1/≥2)** 로 재정의. 핵심 분석 = K≥2에서 routing 성공 시 lift(§3 M5 `stratify.py`).
+>
 > **v0.4.2 (외부 리뷰 반영 — 스케일/cold-start/loss/split 강화)**: 4개 개선 수용.
 > - **현실적 스케일**: LLM 전수 추출 대신 **유저 ~10K–50K 서브샘플**, 추출은 *eligible(~5%)에게만* → 호출 ~수천(전체 유저 추출 아님; "비용 폭발"은 전체 추출 가정에서 온 과장)(§6.2).
 > - **cold-start prefix**: zero/global-average 금지 → **학습 가능한 `[DEFAULT_INTENT]` prefix 파라미터**(Stage 2 학습)로 신호 없는 유저·"no-intent" baseline 처리(§7 #1).
@@ -638,7 +658,7 @@ P1 A/B(§4 Stage P1)의 목적은 어느 도메인에서 discriminative·aspect_
 - (a) 사용자별 자동(agglomerative + distance threshold, k_min~k_max): 실제 의도 다양성 반영, 그러나 threshold τ가 카테고리마다 다를 수 있음
 - (b) 고정 K (예: 항상 3): 구현 단순, 그러나 의도가 1개뿐인 유저에 억지로 3개를 만들면 노이즈 메모리 생성
 - (c) 공유 prototype: cold-start/짧은 이력에 강건, 그러나 유저 특화 brand_tendency 등 손실
-- **확정**: (a)+(c) 결합 — personal agglomerative(τ_personal, k_min=2·k_max=5)로 K_personal 산출, K_personal < k_min이면 population-level prototype(§2.2 (B), τ_global, P≈8-15개)에서 부족분을 보충(`assemble`, §3 M2). K_personal==0인 유저는 전체 구매이력 임베딩 centroid로 prototype 매칭. τ_personal/τ_global 실제 값과 fallback 발동 비율은 Pilot 2(§4 Stage P2)에서 실측해 F3 비용 추정에 반영.
+- **확정 (v0.4.3 갱신)**: (a)+(c) 결합 — personal agglomerative(τ_personal, **k_min=1**·k_max=5)로 K_personal 산출. **K_personal을 0/1/≥2로 정직히 보고하고 억지로 K≥2를 만들지 않는다**(리뷰가 동질이면 K=1, 변별 리뷰가 없으면 K=0). K_personal==0(또는 K==1인데 query-memory sim이 낮은 경우)에는 population-level prototype(§2.2 (B), τ_global, P≈8-15개)을 *명시적 fallback*으로만 부여(`is_prototype=true`, 평가 분리), 신호 자체가 없으면 learnable `[DEFAULT_INTENT]`(v0.4.2). prototype을 personal 메모리처럼 "보충"하지 않는다. τ_personal/τ_global과 K 분포는 Pilot 2/3에서 실측.
 - **(v0.4.2) cold-start prefix — zero/global-average 금지, learnable `[DEFAULT_INTENT]` 토큰 사용**: 메모리/prototype 매칭이 의미 없는 진짜 cold-start(구매이력 신호도 빈약) 또는 eval의 "no-intent" baseline에는, 평균 텐서(특징 뭉개짐)나 zero-vector(dead neuron·attention 왜곡) 대신 **학습 가능한 d_sasrec 차원 prefix 파라미터** `default_intent` 하나를 두고 Stage 2에서 함께 학습한다 — 모델이 "특정 의도 없을 때의 최적 중립 방향"을 스스로 학습. 구매이력 신호가 있는 유저는 위 centroid→prototype 경로 유지, 신호 없는 유저만 `default_intent`. (§3 M3 projector/sasrec, §3 M5 `none` 조건의 학습형 baseline.)
 
 **#2. preference_signal 저장 형식**
@@ -693,11 +713,5 @@ P1 A/B(§4 Stage P1)의 목적은 어느 도메인에서 discriminative·aspect_
 - **분석**: 유저당 라우팅 후보(personal+prototype)는 ≤~7개로 매우 적음 → 매 학습 스텝마다 해당 후보 전체 + `h_query`를 현재 text_encoder로 재인코딩하는 비용은 무시 가능(짧은 텍스트, 소수 forward pass).
 - **확정**: Stage2는 **항상 on-the-fly 재인코딩**(라우팅 후보 재인코딩 → top-1 재라우팅 → projector 입력)을 기본값으로 한다. `memory_bank`의 캐시된 `embedding.vector`는 M2 산출 시점의 클러스터링/prototype 매칭/Stage1 학습 타깃으로만 사용되고 Stage2 정합성에는 의존하지 않음 — 별도의 주기적 재캐싱 전략 불필요. **확인 필요 없음**.
 
----
-## 8. 다음 단계
 
-1. ~~`연구아이디어.pdf` 대조~~ — v0.2에서 완료, v0.3.2에서 재대조(§0.1) 완료.
-2. ~~#1, #4, #5, #6, #7, #11에 대한 회신~~ — v0.2~v0.4에서 반영·확정. **모든 §7 항목 확정 완료** — Pilot 1 골격/config의 `model_id`를 `gemma4:26b`(via Ollama, §7 #7)로 확정 적용.
-3. `src/pilot/` 골격(함수 시그니처 + config 템플릿) 작성 — 구현/실행 없음.
-4. 골격 작성 후 Stage P1(§4)의 LLM 호출 수(N=200) 기준 예상 비용(시간/리소스) 추정치를 공유하고, Pilot 1 실행 전 승인을 받는다.
 /

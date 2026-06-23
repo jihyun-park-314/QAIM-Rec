@@ -1,0 +1,31 @@
+# Custom Ollama image: ollama 0.20.0 (minimum for gemma4:26b) with CUDA 12.1 runtime.
+#
+# Why this exists:
+#   - ollama 0.20.0 is the minimum version that parses the gemma4:26b GGUF format
+#   - ollama 0.20.0 ships with CUDA 12.8 runtime (requires driver 570+)
+#   - our hardware: RTX 2080 Ti (sm_75), driver 535 (max CUDA 12.2)
+#   - libggml-cuda.so in 0.20.0 DOES include sm_75 cubin — only runtime needs swapping
+#   - CUDA 12.1 requires driver >= 525 — driver 535 is compatible
+#
+# Result: ollama 0.20.0 binaries + CUDA 12.1 runtime + sm_75-capable kernels
+
+FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04 AS cuda121-libs
+
+FROM ollama/ollama:0.20.0
+
+# Replace CUDA 12.8 runtime/cuBLAS libraries with CUDA 12.1 equivalents.
+# libggml-cuda.so is NOT replaced — it already contains sm_75 cubin.
+COPY --from=cuda121-libs /usr/local/cuda/lib64/libcudart.so.12.1.55    /usr/lib/ollama/cuda_v12/libcudart.so.12.1.55
+COPY --from=cuda121-libs /usr/local/cuda/lib64/libcublas.so.12.1.0.26  /usr/lib/ollama/cuda_v12/libcublas.so.12.1.0.26
+COPY --from=cuda121-libs /usr/local/cuda/lib64/libcublasLt.so.12.1.0.26 /usr/lib/ollama/cuda_v12/libcublasLt.so.12.1.0.26
+
+# Remove CUDA 12.8 libs and repoint major-version symlinks to 12.1
+RUN rm -f /usr/lib/ollama/cuda_v12/libcudart.so.12.8.* \
+          /usr/lib/ollama/cuda_v12/libcublas.so.12.8.* \
+          /usr/lib/ollama/cuda_v12/libcublasLt.so.12.8.* && \
+    ln -sf libcudart.so.12.1.55     /usr/lib/ollama/cuda_v12/libcudart.so.12 && \
+    ln -sf libcublas.so.12.1.0.26   /usr/lib/ollama/cuda_v12/libcublas.so.12 && \
+    ln -sf libcublasLt.so.12.1.0.26 /usr/lib/ollama/cuda_v12/libcublasLt.so.12
+
+# Verify expected symlinks
+RUN ls -la /usr/lib/ollama/cuda_v12/lib*.so.12

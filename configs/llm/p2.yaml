@@ -3,7 +3,7 @@
 # http://localhost:11434/api/generate).
 
 model_id: gemma4:26b
-api_url: http://localhost:11434/api/generate
+api_url: http://localhost:11434/api/chat
 
 temperature: 0.0
 max_new_tokens: 128   # -> request body options.num_predict

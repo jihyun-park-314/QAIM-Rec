@@ -130,3 +130,137 @@ def print_metrics(metrics: dict[str, float], prefix: str = "") -> None:
         n = metrics.get(f"NDCG@{k}", 0)
         m = metrics.get(f"MRR@{k}", 0)
         print(f"  {header}@{k:2d}: Recall={r:.4f}  NDCG={n:.4f}  MRR={m:.4f}")
+
+
+def load_warm_users(sequences_jsonl_path: str) -> set[int]:
+    """Return set of user IDs (int) that have ≥1 memory-eligible interaction.
+
+    'Warm' = has at least one interaction with rating≥4 + ≥10 words in train.
+    'Cold' = no eligible interactions → prototype/DEFAULT_INTENT only.
+    """
+    import json as _json
+    warm: set[int] = set()
+    try:
+        with open(sequences_jsonl_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                rec = _json.loads(line)
+                if any(it.get("is_eligible") for it in rec.get("items", [])):
+                    warm.add(rec["user_id"])
+    except FileNotFoundError:
+        pass
+    return warm
+
+
+@torch.no_grad()
+def evaluate_full_stratified(
+    model,
+    dataset: dict,
+    args,
+    split: str = "test",
+    max_users: int = 10_000,
+    sequences_jsonl_path: str | None = None,
+) -> dict[str, dict[str, float]]:
+    """Full-catalog ranking with warm/cold stratification.
+
+    Returns:
+        {
+            "overall": {metric: float, ...},
+            "warm":    {metric: float, ...},   # users with ≥1 eligible interaction
+            "cold":    {metric: float, ...},   # users with 0 eligible interactions
+            "counts":  {"overall": int, "warm": int, "cold": int},
+        }
+    """
+    warm_users: set[int] = set()
+    if sequences_jsonl_path:
+        warm_users = load_warm_users(sequences_jsonl_path)
+
+    model.eval()
+    dev = args.device
+
+    user_train = dataset["user_train"]
+    user_valid = dataset["user_valid"]
+    user_test = dataset["user_test"]
+    usernum = dataset["usernum"]
+    itemnum = dataset["itemnum"]
+
+    if split == "test":
+        target_dict = user_test
+        history_extra = user_valid
+    else:
+        target_dict = user_valid
+        history_extra = {}
+
+    all_users = [u for u in range(1, usernum + 1) if user_train.get(u) and target_dict.get(u)]
+    if len(all_users) > max_users:
+        import random
+        rng = random.Random(42)
+        all_users = rng.sample(all_users, max_users)
+
+    all_items = torch.arange(1, itemnum + 1, dtype=torch.long, device=dev)
+    all_item_embs = model.item_emb(all_items)
+
+    def _empty_accum():
+        return {f"{m}@{k}": 0.0 for m in ["Recall", "NDCG", "MRR"] for k in _KS}
+
+    accum = {"overall": _empty_accum(), "warm": _empty_accum(), "cold": _empty_accum()}
+    n_valid = {"overall": 0, "warm": 0, "cold": 0}
+
+    for u in all_users:
+        target_items = target_dict[u]
+        if not target_items:
+            continue
+        target = target_items[0]
+
+        seq = np.zeros([args.maxlen], dtype=np.int32)
+        idx = args.maxlen - 1
+        if split == "test" and history_extra.get(u):
+            for extra in reversed(history_extra[u]):
+                seq[idx] = extra
+                idx -= 1
+                if idx == -1:
+                    break
+        for i in reversed(user_train[u]):
+            if idx == -1:
+                break
+            seq[idx] = i
+            idx -= 1
+
+        seq_np = seq[np.newaxis, :]
+        log_feats, _ = model.log2feats(seq_np)
+        final_feat = log_feats[0, -1, :]
+        scores = all_item_embs.matmul(final_feat)
+
+        seen = set(user_train[u])
+        seen.discard(0)
+        if split == "test" and history_extra.get(u):
+            seen.update(history_extra[u])
+        seen_idx = torch.tensor([i - 1 for i in seen if 1 <= i <= itemnum],
+                                dtype=torch.long, device=dev)
+        if len(seen_idx) > 0:
+            scores[seen_idx] = -1e9
+
+        rank_of_target = (scores > scores[target - 1]).sum().item()
+
+        tier = "warm" if (warm_users and u in warm_users) else "cold"
+        for group in ("overall", tier):
+            n_valid[group] += 1
+            for k in _KS:
+                if rank_of_target < k:
+                    accum[group][f"Recall@{k}"] += 1.0
+                    accum[group][f"NDCG@{k}"] += 1.0 / math.log2(rank_of_target + 2)
+                accum[group][f"MRR@{k}"] += 1.0 / (rank_of_target + 1) if rank_of_target < k else 0.0
+
+    def _normalise(a: dict, n: int) -> dict[str, float]:
+        if n == 0:
+            return {k: 0.0 for k in a}
+        return {k: round(v / n, 6) for k, v in a.items()}
+
+    return {
+        "overall": _normalise(accum["overall"], n_valid["overall"]),
+        "warm":    _normalise(accum["warm"],    n_valid["warm"]),
+        "cold":    _normalise(accum["cold"],    n_valid["cold"]),
+        "counts":  n_valid,
+    }

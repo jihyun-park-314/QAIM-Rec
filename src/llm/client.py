@@ -49,9 +49,11 @@ def load_llm_config(path: str) -> LLMConfig:
         data = yaml.safe_load(f)
     fields = {f.name for f in dataclasses.fields(LLMConfig)}
     filtered = {k: v for k, v in data.items() if k in fields}
+    # Allow runtime override of api_url (useful in Docker where Ollama is on host)
+    api_url = os.environ.get("OLLAMA_API_URL", data["api_url"])
     return LLMConfig(
         model_id=data["model_id"],
-        api_url=data["api_url"],
+        api_url=api_url,
         temperature=float(data.get("temperature", 0.0)),
         max_new_tokens=int(data.get("max_new_tokens", 512)),
         prompt_version=data.get("prompt_version", "v1"),
@@ -85,6 +87,10 @@ class LLMClient:
         self.config = config
         os.makedirs(os.path.dirname(os.path.abspath(config.cache_db)), exist_ok=True)
         self._conn = sqlite3.connect(config.cache_db, check_same_thread=False)
+        # WAL mode: safe for concurrent multi-process writes; idempotent on already-WAL DBs.
+        # busy_timeout: retry up to 30s on SQLITE_BUSY instead of raising immediately.
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA busy_timeout=30000")
         self._conn.executescript(
             """
             CREATE TABLE IF NOT EXISTS parsed_success_cache

@@ -1,0 +1,15 @@
+# Pilot 3: Leakage probe — Books dataset (plan.md §4 Stage P3).
+# go/no-go: masking_pass_rate >= 0.70 (R_query_only values are a leakage
+# floor reference, not an absolute Recall threshold — see Pilot3Report docstring).
+
+category: Books
+n_users: 100
+recall_ks: [10, 50]
+
+llm_config_path: configs/llm/p2.yaml        # pseudo-query generation (p2_v1)
+embedding_model_id: BAAI/bge-base-en-v1.5   # plan.md §7 #8
+
+masking_pass_rate_threshold: 0.70
+
+seed: 42
+output_path: results/pilot/pilot3_books_report.json

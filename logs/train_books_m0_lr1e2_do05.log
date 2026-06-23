@@ -1,0 +1,577 @@
+[train] category=Books, device=cuda:0
+[train] loading data from data/processed/Books/
+[train] usernum=10566, itemnum=9041
+[epoch   1/300] loss=2.0503  elapsed=3s
+[epoch   2/300] loss=1.4377  elapsed=5s
+[epoch   3/300] loss=1.4221  elapsed=7s
+[epoch   4/300] loss=1.3960  elapsed=8s
+[epoch   5/300] loss=1.3645  elapsed=10s
+  [eval val] epoch=5
+  val @ 5: Recall=0.0192  NDCG=0.0131  MRR=0.0111
+  val @10: Recall=0.0312  NDCG=0.0170  MRR=0.0127
+  val @20: Recall=0.0502  NDCG=0.0218  MRR=0.0140
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0170)
+[epoch   6/300] loss=1.3476  elapsed=29s
+[epoch   7/300] loss=1.3303  elapsed=30s
+[epoch   8/300] loss=1.3231  elapsed=32s
+[epoch   9/300] loss=1.3131  elapsed=33s
+[epoch  10/300] loss=1.3038  elapsed=35s
+  [eval val] epoch=10
+  val @ 5: Recall=0.0184  NDCG=0.0118  MRR=0.0096
+  val @10: Recall=0.0284  NDCG=0.0150  MRR=0.0110
+  val @20: Recall=0.0445  NDCG=0.0191  MRR=0.0121
+[epoch  11/300] loss=1.3016  elapsed=52s
+[epoch  12/300] loss=1.2914  elapsed=53s
+[epoch  13/300] loss=1.2943  elapsed=55s
+[epoch  14/300] loss=1.2843  elapsed=56s
+[epoch  15/300] loss=1.2867  elapsed=58s
+  [eval val] epoch=15
+  val @ 5: Recall=0.0198  NDCG=0.0132  MRR=0.0110
+  val @10: Recall=0.0287  NDCG=0.0161  MRR=0.0122
+  val @20: Recall=0.0470  NDCG=0.0207  MRR=0.0135
+[epoch  16/300] loss=1.2775  elapsed=74s
+[epoch  17/300] loss=1.2734  elapsed=76s
+[epoch  18/300] loss=1.2756  elapsed=77s
+[epoch  19/300] loss=1.2740  elapsed=79s
+[epoch  20/300] loss=1.2686  elapsed=80s
+  [eval val] epoch=20
+  val @ 5: Recall=0.0201  NDCG=0.0137  MRR=0.0116
+  val @10: Recall=0.0352  NDCG=0.0185  MRR=0.0135
+  val @20: Recall=0.0556  NDCG=0.0236  MRR=0.0149
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0185)
+[epoch  21/300] loss=1.2636  elapsed=97s
+[epoch  22/300] loss=1.2563  elapsed=99s
+[epoch  23/300] loss=1.2491  elapsed=100s
+[epoch  24/300] loss=1.2449  elapsed=101s
+[epoch  25/300] loss=1.2419  elapsed=103s
+  [eval val] epoch=25
+  val @ 5: Recall=0.0250  NDCG=0.0162  MRR=0.0133
+  val @10: Recall=0.0351  NDCG=0.0194  MRR=0.0146
+  val @20: Recall=0.0518  NDCG=0.0235  MRR=0.0157
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0194)
+[epoch  26/300] loss=1.2342  elapsed=120s
+[epoch  27/300] loss=1.2370  elapsed=121s
+[epoch  28/300] loss=1.2336  elapsed=123s
+[epoch  29/300] loss=1.2353  elapsed=124s
+[epoch  30/300] loss=1.2313  elapsed=126s
+  [eval val] epoch=30
+  val @ 5: Recall=0.0235  NDCG=0.0157  MRR=0.0132
+  val @10: Recall=0.0344  NDCG=0.0192  MRR=0.0146
+  val @20: Recall=0.0572  NDCG=0.0249  MRR=0.0161
+[epoch  31/300] loss=1.2270  elapsed=142s
+[epoch  32/300] loss=1.2287  elapsed=144s
+[epoch  33/300] loss=1.2297  elapsed=145s
+[epoch  34/300] loss=1.2182  elapsed=147s
+[epoch  35/300] loss=1.2235  elapsed=148s
+  [eval val] epoch=35
+  val @ 5: Recall=0.0221  NDCG=0.0146  MRR=0.0121
+  val @10: Recall=0.0351  NDCG=0.0187  MRR=0.0138
+  val @20: Recall=0.0548  NDCG=0.0237  MRR=0.0152
+[epoch  36/300] loss=1.2233  elapsed=165s
+[epoch  37/300] loss=1.2266  elapsed=166s
+[epoch  38/300] loss=1.2233  elapsed=168s
+[epoch  39/300] loss=1.2214  elapsed=170s
+[epoch  40/300] loss=1.2193  elapsed=171s
+  [eval val] epoch=40
+  val @ 5: Recall=0.0233  NDCG=0.0153  MRR=0.0126
+  val @10: Recall=0.0361  NDCG=0.0193  MRR=0.0143
+  val @20: Recall=0.0578  NDCG=0.0248  MRR=0.0158
+[epoch  41/300] loss=1.2180  elapsed=188s
+[epoch  42/300] loss=1.2226  elapsed=189s
+[epoch  43/300] loss=1.2230  elapsed=191s
+[epoch  44/300] loss=1.2209  elapsed=192s
+[epoch  45/300] loss=1.2150  elapsed=194s
+  [eval val] epoch=45
+  val @ 5: Recall=0.0217  NDCG=0.0144  MRR=0.0120
+  val @10: Recall=0.0358  NDCG=0.0188  MRR=0.0138
+  val @20: Recall=0.0588  NDCG=0.0246  MRR=0.0153
+[epoch  46/300] loss=1.2105  elapsed=210s
+[epoch  47/300] loss=1.2130  elapsed=212s
+[epoch  48/300] loss=1.2157  elapsed=213s
+[epoch  49/300] loss=1.2127  elapsed=215s
+[epoch  50/300] loss=1.2148  elapsed=216s
+  [eval val] epoch=50
+  val @ 5: Recall=0.0212  NDCG=0.0135  MRR=0.0110
+  val @10: Recall=0.0336  NDCG=0.0175  MRR=0.0126
+  val @20: Recall=0.0573  NDCG=0.0234  MRR=0.0142
+[epoch  51/300] loss=1.2117  elapsed=233s
+[epoch  52/300] loss=1.2150  elapsed=235s
+[epoch  53/300] loss=1.2154  elapsed=236s
+[epoch  54/300] loss=1.2080  elapsed=238s
+[epoch  55/300] loss=1.2065  elapsed=239s
+  [eval val] epoch=55
+  val @ 5: Recall=0.0234  NDCG=0.0161  MRR=0.0138
+  val @10: Recall=0.0370  NDCG=0.0205  MRR=0.0156
+  val @20: Recall=0.0599  NDCG=0.0263  MRR=0.0171
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0205)
+[epoch  56/300] loss=1.2083  elapsed=256s
+[epoch  57/300] loss=1.2062  elapsed=258s
+[epoch  58/300] loss=1.2005  elapsed=259s
+[epoch  59/300] loss=1.1961  elapsed=261s
+[epoch  60/300] loss=1.1912  elapsed=262s
+  [eval val] epoch=60
+  val @ 5: Recall=0.0263  NDCG=0.0176  MRR=0.0147
+  val @10: Recall=0.0403  NDCG=0.0221  MRR=0.0166
+  val @20: Recall=0.0612  NDCG=0.0273  MRR=0.0180
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0221)
+[epoch  61/300] loss=1.1919  elapsed=279s
+[epoch  62/300] loss=1.1881  elapsed=280s
+[epoch  63/300] loss=1.1926  elapsed=282s
+[epoch  64/300] loss=1.1876  elapsed=283s
+[epoch  65/300] loss=1.1698  elapsed=285s
+  [eval val] epoch=65
+  val @ 5: Recall=0.0237  NDCG=0.0149  MRR=0.0121
+  val @10: Recall=0.0398  NDCG=0.0201  MRR=0.0142
+  val @20: Recall=0.0660  NDCG=0.0266  MRR=0.0159
+[epoch  66/300] loss=1.1904  elapsed=302s
+[epoch  67/300] loss=1.1814  elapsed=303s
+[epoch  68/300] loss=1.1778  elapsed=305s
+[epoch  69/300] loss=1.1765  elapsed=306s
+[epoch  70/300] loss=1.1715  elapsed=308s
+  [eval val] epoch=70
+  val @ 5: Recall=0.0297  NDCG=0.0168  MRR=0.0127
+  val @10: Recall=0.0447  NDCG=0.0216  MRR=0.0146
+  val @20: Recall=0.0715  NDCG=0.0283  MRR=0.0164
+[epoch  71/300] loss=1.1715  elapsed=325s
+[epoch  72/300] loss=1.1742  elapsed=326s
+[epoch  73/300] loss=1.1801  elapsed=328s
+[epoch  74/300] loss=1.1735  elapsed=329s
+[epoch  75/300] loss=1.1721  elapsed=331s
+  [eval val] epoch=75
+  val @ 5: Recall=0.0258  NDCG=0.0168  MRR=0.0138
+  val @10: Recall=0.0431  NDCG=0.0223  MRR=0.0161
+  val @20: Recall=0.0721  NDCG=0.0297  MRR=0.0181
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0223)
+[epoch  76/300] loss=1.1691  elapsed=348s
+[epoch  77/300] loss=1.1634  elapsed=349s
+[epoch  78/300] loss=1.1663  elapsed=351s
+[epoch  79/300] loss=1.1613  elapsed=352s
+[epoch  80/300] loss=1.1630  elapsed=354s
+  [eval val] epoch=80
+  val @ 5: Recall=0.0280  NDCG=0.0186  MRR=0.0155
+  val @10: Recall=0.0475  NDCG=0.0248  MRR=0.0180
+  val @20: Recall=0.0763  NDCG=0.0321  MRR=0.0200
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0248)
+[epoch  81/300] loss=1.1616  elapsed=371s
+[epoch  82/300] loss=1.1543  elapsed=372s
+[epoch  83/300] loss=1.1549  elapsed=374s
+[epoch  84/300] loss=1.1522  elapsed=375s
+[epoch  85/300] loss=1.1548  elapsed=377s
+  [eval val] epoch=85
+  val @ 5: Recall=0.0287  NDCG=0.0177  MRR=0.0140
+  val @10: Recall=0.0468  NDCG=0.0235  MRR=0.0165
+  val @20: Recall=0.0763  NDCG=0.0309  MRR=0.0185
+[epoch  86/300] loss=1.1526  elapsed=393s
+[epoch  87/300] loss=1.1527  elapsed=395s
+[epoch  88/300] loss=1.1563  elapsed=396s
+[epoch  89/300] loss=1.1477  elapsed=398s
+[epoch  90/300] loss=1.1456  elapsed=399s
+  [eval val] epoch=90
+  val @ 5: Recall=0.0256  NDCG=0.0174  MRR=0.0147
+  val @10: Recall=0.0442  NDCG=0.0233  MRR=0.0171
+  val @20: Recall=0.0715  NDCG=0.0302  MRR=0.0190
+[epoch  91/300] loss=1.1387  elapsed=416s
+[epoch  92/300] loss=1.1487  elapsed=418s
+[epoch  93/300] loss=1.1485  elapsed=419s
+[epoch  94/300] loss=1.1508  elapsed=421s
+[epoch  95/300] loss=1.1416  elapsed=422s
+  [eval val] epoch=95
+  val @ 5: Recall=0.0285  NDCG=0.0190  MRR=0.0158
+  val @10: Recall=0.0485  NDCG=0.0254  MRR=0.0185
+  val @20: Recall=0.0736  NDCG=0.0317  MRR=0.0202
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0254)
+[epoch  96/300] loss=1.1440  elapsed=439s
+[epoch  97/300] loss=1.1412  elapsed=440s
+[epoch  98/300] loss=1.1355  elapsed=442s
+[epoch  99/300] loss=1.1405  elapsed=444s
+[epoch 100/300] loss=1.1403  elapsed=445s
+  [eval val] epoch=100
+  val @ 5: Recall=0.0299  NDCG=0.0196  MRR=0.0162
+  val @10: Recall=0.0485  NDCG=0.0256  MRR=0.0187
+  val @20: Recall=0.0762  NDCG=0.0326  MRR=0.0206
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0256)
+[epoch 101/300] loss=1.1374  elapsed=462s
+[epoch 102/300] loss=1.1359  elapsed=463s
+[epoch 103/300] loss=1.1310  elapsed=465s
+[epoch 104/300] loss=1.1391  elapsed=466s
+[epoch 105/300] loss=1.1414  elapsed=468s
+  [eval val] epoch=105
+  val @ 5: Recall=0.0301  NDCG=0.0198  MRR=0.0165
+  val @10: Recall=0.0468  NDCG=0.0252  MRR=0.0187
+  val @20: Recall=0.0724  NDCG=0.0316  MRR=0.0204
+[epoch 106/300] loss=1.1379  elapsed=485s
+[epoch 107/300] loss=1.1383  elapsed=486s
+[epoch 108/300] loss=1.1364  elapsed=488s
+[epoch 109/300] loss=1.1343  elapsed=489s
+[epoch 110/300] loss=1.1364  elapsed=491s
+  [eval val] epoch=110
+  val @ 5: Recall=0.0317  NDCG=0.0200  MRR=0.0161
+  val @10: Recall=0.0496  NDCG=0.0257  MRR=0.0184
+  val @20: Recall=0.0770  NDCG=0.0326  MRR=0.0203
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0257)
+[epoch 111/300] loss=1.1291  elapsed=507s
+[epoch 112/300] loss=1.1318  elapsed=509s
+[epoch 113/300] loss=1.1308  elapsed=510s
+[epoch 114/300] loss=1.1338  elapsed=512s
+[epoch 115/300] loss=1.1345  elapsed=513s
+  [eval val] epoch=115
+  val @ 5: Recall=0.0263  NDCG=0.0160  MRR=0.0127
+  val @10: Recall=0.0458  NDCG=0.0223  MRR=0.0152
+  val @20: Recall=0.0737  NDCG=0.0292  MRR=0.0171
+[epoch 116/300] loss=1.1334  elapsed=530s
+[epoch 117/300] loss=1.1322  elapsed=531s
+[epoch 118/300] loss=1.1291  elapsed=533s
+[epoch 119/300] loss=1.1228  elapsed=535s
+[epoch 120/300] loss=1.1317  elapsed=536s
+  [eval val] epoch=120
+  val @ 5: Recall=0.0272  NDCG=0.0172  MRR=0.0140
+  val @10: Recall=0.0450  NDCG=0.0230  MRR=0.0163
+  val @20: Recall=0.0753  NDCG=0.0305  MRR=0.0184
+[epoch 121/300] loss=1.1242  elapsed=553s
+[epoch 122/300] loss=1.1263  elapsed=554s
+[epoch 123/300] loss=1.1244  elapsed=556s
+[epoch 124/300] loss=1.1256  elapsed=557s
+[epoch 125/300] loss=1.1255  elapsed=559s
+  [eval val] epoch=125
+  val @ 5: Recall=0.0323  NDCG=0.0207  MRR=0.0169
+  val @10: Recall=0.0511  NDCG=0.0268  MRR=0.0194
+  val @20: Recall=0.0802  NDCG=0.0341  MRR=0.0214
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0268)
+[epoch 126/300] loss=1.1273  elapsed=576s
+[epoch 127/300] loss=1.1289  elapsed=577s
+[epoch 128/300] loss=1.1301  elapsed=579s
+[epoch 129/300] loss=1.1098  elapsed=580s
+[epoch 130/300] loss=1.1265  elapsed=582s
+  [eval val] epoch=130
+  val @ 5: Recall=0.0285  NDCG=0.0178  MRR=0.0143
+  val @10: Recall=0.0484  NDCG=0.0242  MRR=0.0169
+  val @20: Recall=0.0771  NDCG=0.0315  MRR=0.0190
+[epoch 131/300] loss=1.1214  elapsed=598s
+[epoch 132/300] loss=1.1211  elapsed=600s
+[epoch 133/300] loss=1.1244  elapsed=602s
+[epoch 134/300] loss=1.1224  elapsed=603s
+[epoch 135/300] loss=1.1206  elapsed=605s
+  [eval val] epoch=135
+  val @ 5: Recall=0.0266  NDCG=0.0163  MRR=0.0130
+  val @10: Recall=0.0460  NDCG=0.0225  MRR=0.0155
+  val @20: Recall=0.0765  NDCG=0.0301  MRR=0.0175
+[epoch 136/300] loss=1.1195  elapsed=621s
+[epoch 137/300] loss=1.1178  elapsed=623s
+[epoch 138/300] loss=1.1175  elapsed=624s
+[epoch 139/300] loss=1.1157  elapsed=626s
+[epoch 140/300] loss=1.1166  elapsed=628s
+  [eval val] epoch=140
+  val @ 5: Recall=0.0319  NDCG=0.0205  MRR=0.0168
+  val @10: Recall=0.0526  NDCG=0.0272  MRR=0.0195
+  val @20: Recall=0.0812  NDCG=0.0344  MRR=0.0215
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0272)
+[epoch 141/300] loss=1.1152  elapsed=644s
+[epoch 142/300] loss=1.1155  elapsed=646s
+[epoch 143/300] loss=1.1055  elapsed=647s
+[epoch 144/300] loss=1.1161  elapsed=649s
+[epoch 145/300] loss=1.1137  elapsed=650s
+  [eval val] epoch=145
+  val @ 5: Recall=0.0332  NDCG=0.0201  MRR=0.0157
+  val @10: Recall=0.0544  NDCG=0.0269  MRR=0.0185
+  val @20: Recall=0.0857  NDCG=0.0347  MRR=0.0206
+[epoch 146/300] loss=1.1121  elapsed=667s
+[epoch 147/300] loss=1.1161  elapsed=668s
+[epoch 148/300] loss=1.1089  elapsed=670s
+[epoch 149/300] loss=1.1104  elapsed=671s
+[epoch 150/300] loss=1.1133  elapsed=673s
+  [eval val] epoch=150
+  val @ 5: Recall=0.0297  NDCG=0.0190  MRR=0.0155
+  val @10: Recall=0.0492  NDCG=0.0252  MRR=0.0180
+  val @20: Recall=0.0822  NDCG=0.0335  MRR=0.0203
+[epoch 151/300] loss=1.1091  elapsed=689s
+[epoch 152/300] loss=1.1127  elapsed=691s
+[epoch 153/300] loss=1.1083  elapsed=692s
+[epoch 154/300] loss=1.1101  elapsed=694s
+[epoch 155/300] loss=1.1082  elapsed=695s
+  [eval val] epoch=155
+  val @ 5: Recall=0.0345  NDCG=0.0222  MRR=0.0181
+  val @10: Recall=0.0536  NDCG=0.0283  MRR=0.0206
+  val @20: Recall=0.0810  NDCG=0.0352  MRR=0.0225
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0283)
+[epoch 156/300] loss=1.1093  elapsed=712s
+[epoch 157/300] loss=1.1004  elapsed=713s
+[epoch 158/300] loss=1.1101  elapsed=715s
+[epoch 159/300] loss=1.1068  elapsed=716s
+[epoch 160/300] loss=1.1082  elapsed=718s
+  [eval val] epoch=160
+  val @ 5: Recall=0.0310  NDCG=0.0197  MRR=0.0160
+  val @10: Recall=0.0509  NDCG=0.0261  MRR=0.0186
+  val @20: Recall=0.0848  NDCG=0.0346  MRR=0.0210
+[epoch 161/300] loss=1.1069  elapsed=735s
+[epoch 162/300] loss=1.1047  elapsed=736s
+[epoch 163/300] loss=1.0969  elapsed=738s
+[epoch 164/300] loss=1.1084  elapsed=739s
+[epoch 165/300] loss=1.1085  elapsed=741s
+  [eval val] epoch=165
+  val @ 5: Recall=0.0297  NDCG=0.0197  MRR=0.0164
+  val @10: Recall=0.0480  NDCG=0.0256  MRR=0.0188
+  val @20: Recall=0.0800  NDCG=0.0336  MRR=0.0210
+[epoch 166/300] loss=1.1023  elapsed=757s
+[epoch 167/300] loss=1.1025  elapsed=759s
+[epoch 168/300] loss=1.1042  elapsed=760s
+[epoch 169/300] loss=1.1053  elapsed=762s
+[epoch 170/300] loss=1.1113  elapsed=763s
+  [eval val] epoch=170
+  val @ 5: Recall=0.0332  NDCG=0.0217  MRR=0.0179
+  val @10: Recall=0.0530  NDCG=0.0280  MRR=0.0205
+  val @20: Recall=0.0862  NDCG=0.0363  MRR=0.0227
+[epoch 171/300] loss=1.1072  elapsed=780s
+[epoch 172/300] loss=1.1038  elapsed=781s
+[epoch 173/300] loss=1.1002  elapsed=783s
+[epoch 174/300] loss=1.1088  elapsed=785s
+[epoch 175/300] loss=1.1002  elapsed=786s
+  [eval val] epoch=175
+  val @ 5: Recall=0.0320  NDCG=0.0204  MRR=0.0166
+  val @10: Recall=0.0529  NDCG=0.0271  MRR=0.0194
+  val @20: Recall=0.0824  NDCG=0.0345  MRR=0.0214
+[epoch 176/300] loss=1.1007  elapsed=803s
+[epoch 177/300] loss=1.1059  elapsed=805s
+[epoch 178/300] loss=1.1014  elapsed=806s
+[epoch 179/300] loss=1.1029  elapsed=808s
+[epoch 180/300] loss=1.1072  elapsed=809s
+  [eval val] epoch=180
+  val @ 5: Recall=0.0275  NDCG=0.0176  MRR=0.0143
+  val @10: Recall=0.0493  NDCG=0.0245  MRR=0.0171
+  val @20: Recall=0.0813  NDCG=0.0325  MRR=0.0193
+[epoch 181/300] loss=1.1011  elapsed=826s
+[epoch 182/300] loss=1.1000  elapsed=827s
+[epoch 183/300] loss=1.0979  elapsed=828s
+[epoch 184/300] loss=1.0989  elapsed=830s
+[epoch 185/300] loss=1.1009  elapsed=832s
+  [eval val] epoch=185
+  val @ 5: Recall=0.0310  NDCG=0.0203  MRR=0.0168
+  val @10: Recall=0.0513  NDCG=0.0267  MRR=0.0194
+  val @20: Recall=0.0843  NDCG=0.0350  MRR=0.0216
+[epoch 186/300] loss=1.1008  elapsed=848s
+[epoch 187/300] loss=1.0988  elapsed=850s
+[epoch 188/300] loss=1.0962  elapsed=851s
+[epoch 189/300] loss=1.1019  elapsed=853s
+[epoch 190/300] loss=1.1011  elapsed=854s
+  [eval val] epoch=190
+  val @ 5: Recall=0.0333  NDCG=0.0215  MRR=0.0176
+  val @10: Recall=0.0519  NDCG=0.0274  MRR=0.0200
+  val @20: Recall=0.0805  NDCG=0.0346  MRR=0.0219
+[epoch 191/300] loss=1.1013  elapsed=871s
+[epoch 192/300] loss=1.1004  elapsed=872s
+[epoch 193/300] loss=1.0988  elapsed=874s
+[epoch 194/300] loss=1.0886  elapsed=875s
+[epoch 195/300] loss=1.1075  elapsed=877s
+  [eval val] epoch=195
+  val @ 5: Recall=0.0332  NDCG=0.0212  MRR=0.0172
+  val @10: Recall=0.0544  NDCG=0.0280  MRR=0.0200
+  val @20: Recall=0.0840  NDCG=0.0355  MRR=0.0221
+[epoch 196/300] loss=1.1014  elapsed=893s
+[epoch 197/300] loss=1.0977  elapsed=895s
+[epoch 198/300] loss=1.0985  elapsed=896s
+[epoch 199/300] loss=1.0992  elapsed=898s
+[epoch 200/300] loss=1.0977  elapsed=899s
+  [eval val] epoch=200
+  val @ 5: Recall=0.0328  NDCG=0.0209  MRR=0.0171
+  val @10: Recall=0.0553  NDCG=0.0282  MRR=0.0200
+  val @20: Recall=0.0867  NDCG=0.0360  MRR=0.0221
+[epoch 201/300] loss=1.0987  elapsed=916s
+[epoch 202/300] loss=1.0982  elapsed=917s
+[epoch 203/300] loss=1.0998  elapsed=919s
+[epoch 204/300] loss=1.0970  elapsed=920s
+[epoch 205/300] loss=1.0990  elapsed=922s
+  [eval val] epoch=205
+  val @ 5: Recall=0.0318  NDCG=0.0199  MRR=0.0160
+  val @10: Recall=0.0545  NDCG=0.0271  MRR=0.0189
+  val @20: Recall=0.0896  NDCG=0.0360  MRR=0.0213
+[epoch 206/300] loss=1.0969  elapsed=938s
+[epoch 207/300] loss=1.0964  elapsed=940s
+[epoch 208/300] loss=1.0984  elapsed=942s
+[epoch 209/300] loss=1.1026  elapsed=943s
+[epoch 210/300] loss=1.1000  elapsed=945s
+  [eval val] epoch=210
+  val @ 5: Recall=0.0343  NDCG=0.0216  MRR=0.0174
+  val @10: Recall=0.0551  NDCG=0.0282  MRR=0.0201
+  val @20: Recall=0.0877  NDCG=0.0364  MRR=0.0223
+[epoch 211/300] loss=1.0953  elapsed=961s
+[epoch 212/300] loss=1.0921  elapsed=963s
+[epoch 213/300] loss=1.0976  elapsed=964s
+[epoch 214/300] loss=1.1007  elapsed=966s
+[epoch 215/300] loss=1.0983  elapsed=968s
+  [eval val] epoch=215
+  val @ 5: Recall=0.0336  NDCG=0.0221  MRR=0.0183
+  val @10: Recall=0.0545  NDCG=0.0288  MRR=0.0211
+  val @20: Recall=0.0851  NDCG=0.0365  MRR=0.0232
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0288)
+[epoch 216/300] loss=1.0953  elapsed=984s
+[epoch 217/300] loss=1.0948  elapsed=986s
+[epoch 218/300] loss=1.0997  elapsed=987s
+[epoch 219/300] loss=1.0999  elapsed=989s
+[epoch 220/300] loss=1.0947  elapsed=990s
+  [eval val] epoch=220
+  val @ 5: Recall=0.0341  NDCG=0.0218  MRR=0.0178
+  val @10: Recall=0.0554  NDCG=0.0287  MRR=0.0206
+  val @20: Recall=0.0877  NDCG=0.0368  MRR=0.0228
+[epoch 221/300] loss=1.0950  elapsed=1007s
+[epoch 222/300] loss=1.0984  elapsed=1008s
+[epoch 223/300] loss=1.0932  elapsed=1010s
+[epoch 224/300] loss=1.0927  elapsed=1012s
+[epoch 225/300] loss=1.0896  elapsed=1013s
+  [eval val] epoch=225
+  val @ 5: Recall=0.0309  NDCG=0.0196  MRR=0.0159
+  val @10: Recall=0.0554  NDCG=0.0275  MRR=0.0192
+  val @20: Recall=0.0876  NDCG=0.0356  MRR=0.0213
+[epoch 226/300] loss=1.0906  elapsed=1030s
+[epoch 227/300] loss=1.0932  elapsed=1031s
+[epoch 228/300] loss=1.0889  elapsed=1033s
+[epoch 229/300] loss=1.0946  elapsed=1034s
+[epoch 230/300] loss=1.0895  elapsed=1036s
+  [eval val] epoch=230
+  val @ 5: Recall=0.0320  NDCG=0.0211  MRR=0.0176
+  val @10: Recall=0.0522  NDCG=0.0276  MRR=0.0202
+  val @20: Recall=0.0862  NDCG=0.0362  MRR=0.0225
+[epoch 231/300] loss=1.0928  elapsed=1052s
+[epoch 232/300] loss=1.0977  elapsed=1054s
+[epoch 233/300] loss=1.0916  elapsed=1055s
+[epoch 234/300] loss=1.0879  elapsed=1057s
+[epoch 235/300] loss=1.0924  elapsed=1058s
+  [eval val] epoch=235
+  val @ 5: Recall=0.0307  NDCG=0.0200  MRR=0.0164
+  val @10: Recall=0.0503  NDCG=0.0263  MRR=0.0190
+  val @20: Recall=0.0832  NDCG=0.0345  MRR=0.0212
+[epoch 236/300] loss=1.0930  elapsed=1075s
+[epoch 237/300] loss=1.0950  elapsed=1076s
+[epoch 238/300] loss=1.0939  elapsed=1078s
+[epoch 239/300] loss=1.0983  elapsed=1079s
+[epoch 240/300] loss=1.0888  elapsed=1081s
+  [eval val] epoch=240
+  val @ 5: Recall=0.0331  NDCG=0.0209  MRR=0.0169
+  val @10: Recall=0.0539  NDCG=0.0276  MRR=0.0196
+  val @20: Recall=0.0867  NDCG=0.0358  MRR=0.0218
+[epoch 241/300] loss=1.0983  elapsed=1097s
+[epoch 242/300] loss=1.0971  elapsed=1099s
+[epoch 243/300] loss=1.0981  elapsed=1101s
+[epoch 244/300] loss=1.0935  elapsed=1102s
+[epoch 245/300] loss=1.0899  elapsed=1104s
+  [eval val] epoch=245
+  val @ 5: Recall=0.0330  NDCG=0.0207  MRR=0.0167
+  val @10: Recall=0.0539  NDCG=0.0275  MRR=0.0195
+  val @20: Recall=0.0845  NDCG=0.0351  MRR=0.0216
+[epoch 246/300] loss=1.0965  elapsed=1120s
+[epoch 247/300] loss=1.0974  elapsed=1122s
+[epoch 248/300] loss=1.0988  elapsed=1123s
+[epoch 249/300] loss=1.0952  elapsed=1125s
+[epoch 250/300] loss=1.0948  elapsed=1126s
+  [eval val] epoch=250
+  val @ 5: Recall=0.0361  NDCG=0.0223  MRR=0.0178
+  val @10: Recall=0.0600  NDCG=0.0300  MRR=0.0210
+  val @20: Recall=0.0931  NDCG=0.0383  MRR=0.0232
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0300)
+[epoch 251/300] loss=1.0868  elapsed=1143s
+[epoch 252/300] loss=1.0946  elapsed=1144s
+[epoch 253/300] loss=1.0949  elapsed=1146s
+[epoch 254/300] loss=1.0913  elapsed=1148s
+[epoch 255/300] loss=1.0891  elapsed=1149s
+  [eval val] epoch=255
+  val @ 5: Recall=0.0353  NDCG=0.0225  MRR=0.0183
+  val @10: Recall=0.0562  NDCG=0.0291  MRR=0.0210
+  val @20: Recall=0.0876  NDCG=0.0370  MRR=0.0231
+[epoch 256/300] loss=1.0893  elapsed=1166s
+[epoch 257/300] loss=1.0929  elapsed=1167s
+[epoch 258/300] loss=1.0768  elapsed=1169s
+[epoch 259/300] loss=1.1007  elapsed=1170s
+[epoch 260/300] loss=1.0951  elapsed=1172s
+  [eval val] epoch=260
+  val @ 5: Recall=0.0327  NDCG=0.0211  MRR=0.0173
+  val @10: Recall=0.0514  NDCG=0.0270  MRR=0.0197
+  val @20: Recall=0.0811  NDCG=0.0345  MRR=0.0217
+[epoch 261/300] loss=1.0958  elapsed=1188s
+[epoch 262/300] loss=1.0886  elapsed=1190s
+[epoch 263/300] loss=1.0935  elapsed=1191s
+[epoch 264/300] loss=1.0931  elapsed=1193s
+[epoch 265/300] loss=1.0937  elapsed=1194s
+  [eval val] epoch=265
+  val @ 5: Recall=0.0323  NDCG=0.0192  MRR=0.0150
+  val @10: Recall=0.0563  NDCG=0.0269  MRR=0.0181
+  val @20: Recall=0.0878  NDCG=0.0348  MRR=0.0202
+[epoch 266/300] loss=1.0861  elapsed=1211s
+[epoch 267/300] loss=1.0909  elapsed=1212s
+[epoch 268/300] loss=1.0890  elapsed=1214s
+[epoch 269/300] loss=1.0887  elapsed=1216s
+[epoch 270/300] loss=1.0849  elapsed=1217s
+  [eval val] epoch=270
+  val @ 5: Recall=0.0360  NDCG=0.0234  MRR=0.0193
+  val @10: Recall=0.0564  NDCG=0.0300  MRR=0.0220
+  val @20: Recall=0.0897  NDCG=0.0384  MRR=0.0243
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0300)
+[epoch 271/300] loss=1.0888  elapsed=1234s
+[epoch 272/300] loss=1.0867  elapsed=1235s
+[epoch 273/300] loss=1.0906  elapsed=1237s
+[epoch 274/300] loss=1.0894  elapsed=1238s
+[epoch 275/300] loss=1.0935  elapsed=1240s
+  [eval val] epoch=275
+  val @ 5: Recall=0.0347  NDCG=0.0222  MRR=0.0181
+  val @10: Recall=0.0550  NDCG=0.0287  MRR=0.0207
+  val @20: Recall=0.0863  NDCG=0.0366  MRR=0.0229
+[epoch 276/300] loss=1.0850  elapsed=1256s
+[epoch 277/300] loss=1.0882  elapsed=1258s
+[epoch 278/300] loss=1.0883  elapsed=1259s
+[epoch 279/300] loss=1.0903  elapsed=1261s
+[epoch 280/300] loss=1.0904  elapsed=1262s
+  [eval val] epoch=280
+  val @ 5: Recall=0.0279  NDCG=0.0177  MRR=0.0144
+  val @10: Recall=0.0497  NDCG=0.0247  MRR=0.0173
+  val @20: Recall=0.0799  NDCG=0.0323  MRR=0.0193
+[epoch 281/300] loss=1.0877  elapsed=1279s
+[epoch 282/300] loss=1.0934  elapsed=1280s
+[epoch 283/300] loss=1.0872  elapsed=1282s
+[epoch 284/300] loss=1.0860  elapsed=1283s
+[epoch 285/300] loss=1.0913  elapsed=1285s
+  [eval val] epoch=285
+  val @ 5: Recall=0.0337  NDCG=0.0218  MRR=0.0179
+  val @10: Recall=0.0531  NDCG=0.0280  MRR=0.0204
+  val @20: Recall=0.0883  NDCG=0.0368  MRR=0.0228
+[epoch 286/300] loss=1.0882  elapsed=1301s
+[epoch 287/300] loss=1.0921  elapsed=1303s
+[epoch 288/300] loss=1.0893  elapsed=1304s
+[epoch 289/300] loss=1.0856  elapsed=1306s
+[epoch 290/300] loss=1.0900  elapsed=1307s
+  [eval val] epoch=290
+  val @ 5: Recall=0.0392  NDCG=0.0242  MRR=0.0193
+  val @10: Recall=0.0590  NDCG=0.0305  MRR=0.0219
+  val @20: Recall=0.0910  NDCG=0.0386  MRR=0.0240
+  [ckpt] saved → checkpoints/Books/sasrec_pretrain.pt (NDCG@10=0.0305)
+[epoch 291/300] loss=1.0871  elapsed=1324s
+[epoch 292/300] loss=1.0899  elapsed=1326s
+[epoch 293/300] loss=1.0841  elapsed=1327s
+[epoch 294/300] loss=1.0926  elapsed=1329s
+[epoch 295/300] loss=1.0894  elapsed=1330s
+  [eval val] epoch=295
+  val @ 5: Recall=0.0336  NDCG=0.0204  MRR=0.0161
+  val @10: Recall=0.0555  NDCG=0.0274  MRR=0.0190
+  val @20: Recall=0.0907  NDCG=0.0362  MRR=0.0213
+[epoch 296/300] loss=1.0866  elapsed=1347s
+[epoch 297/300] loss=1.0877  elapsed=1348s
+[epoch 298/300] loss=1.0835  elapsed=1350s
+[epoch 299/300] loss=1.0863  elapsed=1351s
+[epoch 300/300] loss=1.0871  elapsed=1353s
+  [eval val] epoch=300
+  val @ 5: Recall=0.0326  NDCG=0.0209  MRR=0.0170
+  val @10: Recall=0.0546  NDCG=0.0278  MRR=0.0198
+  val @20: Recall=0.0869  NDCG=0.0360  MRR=0.0221
+
+[train] Done. Best val NDCG@10=0.0305 at epoch 290
+[train] Checkpoint: checkpoints/Books/sasrec_pretrain.pt
+
+[eval test] Loading best checkpoint...
+  [test metrics — overall]
+  test/overall @ 5: Recall=0.0305  NDCG=0.0190  MRR=0.0153
+  test/overall @10: Recall=0.0481  NDCG=0.0247  MRR=0.0176
+  test/overall @20: Recall=0.0749  NDCG=0.0314  MRR=0.0194
+  [warm n=9807  cold n=759]
+  test/warm   @ 5: Recall=0.0297  NDCG=0.0186  MRR=0.0149
+  test/warm   @10: Recall=0.0463  NDCG=0.0239  MRR=0.0171
+  test/warm   @20: Recall=0.0726  NDCG=0.0305  MRR=0.0189
+  test/cold   @ 5: Recall=0.0408  NDCG=0.0249  MRR=0.0196
+  test/cold   @10: Recall=0.0711  NDCG=0.0349  MRR=0.0239
+  test/cold   @20: Recall=0.1041  NDCG=0.0433  MRR=0.0262
+[train] Results saved → checkpoints/Books/results.json

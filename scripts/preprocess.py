@@ -1,12 +1,15 @@
 """CLI entry point for M0/F1 preprocessing.
 
 Usage:
-    # Full run (top-20K heavy users + re-5-core):
-    python scripts/preprocess.py --category Beauty_and_Personal_Care --n_users 20000
-    python scripts/preprocess.py --category Books --n_users 20000
+    # Full run (EXP3RT-style random 50K → 5-core cascade → users≈items):
+    python scripts/preprocess.py --category Beauty_and_Personal_Care --n_users 50000
+    python scripts/preprocess.py --category Books --n_users 50000
 
-    # Smoke test (top-200 heavy users + re-5-core):
-    python scripts/preprocess.py --category Beauty_and_Personal_Care --n_users 200
+    # Full run (legacy heavy-user mode for ablation):
+    python scripts/preprocess.py --category Beauty_and_Personal_Care --n_users 20000 --sampling heavy
+
+    # Smoke test (random 500 users + re-5-core):
+    python scripts/preprocess.py --category Beauty_and_Personal_Care --n_users 500
 """
 import argparse
 import sys
@@ -21,8 +24,13 @@ def main():
     parser = argparse.ArgumentParser(description="M0/F1 preprocessing pipeline")
     parser.add_argument("--category", required=True,
                         help="Category name (e.g. Books, Beauty_and_Personal_Care)")
-    parser.add_argument("--n_users", type=int, default=20_000,
-                        help="Top-N heaviest users to subsample (default: 20000)")
+    parser.add_argument("--n_users", type=int, default=50_000,
+                        help="Users to subsample before re-5-core (default: 50000). "
+                             "With --sampling random, 5-core cascade shrinks this to the "
+                             "final balanced count (target: users≈items).")
+    parser.add_argument("--sampling", default="random", choices=["random", "heavy"],
+                        help="Sampling strategy: 'random' (default, EXP3RT-style, "
+                             "produces users≈items) or 'heavy' (top-N by activity)")
     parser.add_argument("--seed", type=int, default=42,
                         help="Random seed for reproducibility (default: 42)")
     parser.add_argument("--data_dir", default="data/raw",
@@ -37,6 +45,7 @@ def main():
         seed=args.seed,
         data_dir=args.data_dir,
         out_dir=args.out_dir,
+        sampling_strategy=args.sampling,
     )
 
 

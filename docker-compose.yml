@@ -8,10 +8,9 @@ services:
     working_dir: /qaim-rec
     volumes:
       - .:/qaim-rec
-      - hf-cache:/root/.cache/huggingface
     environment:
       - PYTHONPATH=/qaim-rec
-      - HF_HOME=/root/.cache/huggingface
+      - HF_HOME=/qaim-rec/.cache/huggingface
       - TOKENIZERS_PARALLELISM=false
       # GPU selection (CUDA_VISIBLE_DEVICES) is left to application code /
       # runtime env — all GPUs are reserved below so any index is usable.
@@ -31,5 +30,3 @@ services:
     # Keep the container alive in the background; use `docker exec` to get a shell.
     command: sleep infinity
 
-volumes:
-  hf-cache:

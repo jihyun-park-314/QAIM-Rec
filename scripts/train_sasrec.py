@@ -33,7 +33,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models.sasrec import SASRec
 from src.models.dataloader import load_data, WarpSampler
-from src.eval.full_ranking import evaluate_full, print_metrics
+from src.eval.full_ranking import evaluate_full, evaluate_full_stratified, print_metrics
 
 
 def parse_args():
@@ -63,6 +63,9 @@ def parse_args():
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     p.add_argument("--num_workers", type=int, default=1)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--sequences_jsonl", default=None,
+                   help="Path to sequences.jsonl for warm/cold stratified eval. "
+                        "If omitted, uses data_dir/{category}/sequences.jsonl")
     return p.parse_args()
 
 
@@ -181,9 +184,25 @@ def main():
     ckpt = torch.load(os.path.join(ckpt_dir, "sasrec_pretrain.pt"), map_location=args.device)
     model.load_state_dict(ckpt["model_state_dict"])
     model.eval()
-    test_metrics = evaluate_full(model, dataset, args, split="test", max_users=usernum)
-    print("  [test metrics]")
-    print_metrics(test_metrics, prefix="test")
+
+    # Resolve sequences.jsonl path for warm/cold stratification
+    seq_jsonl = args.sequences_jsonl or os.path.join(
+        args.data_dir, args.category, "sequences.jsonl"
+    )
+
+    strat = evaluate_full_stratified(
+        model, dataset, args, split="test", max_users=usernum,
+        sequences_jsonl_path=seq_jsonl,
+    )
+    test_metrics = strat["overall"]
+
+    print("  [test metrics — overall]")
+    print_metrics(test_metrics, prefix="test/overall")
+    print(f"  [warm n={strat['counts']['warm']}  cold n={strat['counts']['cold']}]")
+    if strat["counts"]["warm"] > 0:
+        print_metrics(strat["warm"], prefix="test/warm  ")
+    if strat["counts"]["cold"] > 0:
+        print_metrics(strat["cold"], prefix="test/cold  ")
 
     # Save test metrics alongside checkpoint
     import json
@@ -193,6 +212,7 @@ def main():
         "best_val_ndcg10": best_val_ndcg10,
         "val_metrics": ckpt.get("val_metrics", {}),
         "test_metrics": test_metrics,
+        "test_metrics_stratified": strat,
         "args": vars(args),
     }
     results_path = os.path.join(ckpt_dir, "results.json")

@@ -1,0 +1,265 @@
+[train] category=Beauty_and_Personal_Care, device=cuda:0
+[train] loading data from data/processed/Beauty_and_Personal_Care/
+[train] usernum=18087, itemnum=11442
+[epoch   1/200] loss=1.3282  elapsed=4s
+[epoch   2/200] loss=1.2369  elapsed=7s
+[epoch   3/200] loss=1.1966  elapsed=10s
+[epoch   4/200] loss=1.1648  elapsed=12s
+[epoch   5/200] loss=1.1476  elapsed=15s
+[epoch   6/200] loss=1.1229  elapsed=17s
+[epoch   7/200] loss=1.1126  elapsed=20s
+[epoch   8/200] loss=1.0990  elapsed=22s
+[epoch   9/200] loss=1.0944  elapsed=25s
+[epoch  10/200] loss=1.0886  elapsed=28s
+[epoch  11/200] loss=1.0865  elapsed=30s
+[epoch  12/200] loss=1.0868  elapsed=33s
+[epoch  13/200] loss=1.0850  elapsed=36s
+[epoch  14/200] loss=1.1129  elapsed=38s
+[epoch  15/200] loss=1.1318  elapsed=41s
+[epoch  16/200] loss=1.1588  elapsed=44s
+[epoch  17/200] loss=1.1775  elapsed=46s
+[epoch  18/200] loss=1.1798  elapsed=49s
+[epoch  19/200] loss=1.1796  elapsed=51s
+[epoch  20/200] loss=1.1892  elapsed=54s
+  [eval val] epoch=20
+  val @ 5: Recall=0.0101  NDCG=0.0062  MRR=0.0049
+  val @10: Recall=0.0154  NDCG=0.0079  MRR=0.0056
+  val @20: Recall=0.0251  NDCG=0.0103  MRR=0.0063
+  [ckpt] saved → checkpoints/Beauty_and_Personal_Care/sasrec_pretrain.pt (NDCG@10=0.0079)
+[epoch  21/200] loss=1.1799  elapsed=86s
+[epoch  22/200] loss=1.1782  elapsed=89s
+[epoch  23/200] loss=1.1723  elapsed=91s
+[epoch  24/200] loss=1.1676  elapsed=94s
+[epoch  25/200] loss=1.1622  elapsed=96s
+[epoch  26/200] loss=1.1579  elapsed=99s
+[epoch  27/200] loss=1.1514  elapsed=102s
+[epoch  28/200] loss=1.1489  elapsed=104s
+[epoch  29/200] loss=1.1424  elapsed=107s
+[epoch  30/200] loss=1.1398  elapsed=109s
+[epoch  31/200] loss=1.1354  elapsed=112s
+[epoch  32/200] loss=1.1311  elapsed=115s
+[epoch  33/200] loss=1.1264  elapsed=117s
+[epoch  34/200] loss=1.1219  elapsed=120s
+[epoch  35/200] loss=1.1164  elapsed=123s
+[epoch  36/200] loss=1.1099  elapsed=125s
+[epoch  37/200] loss=1.1035  elapsed=128s
+[epoch  38/200] loss=1.0982  elapsed=130s
+[epoch  39/200] loss=1.0904  elapsed=133s
+[epoch  40/200] loss=1.0900  elapsed=135s
+  [eval val] epoch=40
+  val @ 5: Recall=0.0091  NDCG=0.0061  MRR=0.0051
+  val @10: Recall=0.0150  NDCG=0.0080  MRR=0.0059
+  val @20: Recall=0.0254  NDCG=0.0106  MRR=0.0066
+  [ckpt] saved → checkpoints/Beauty_and_Personal_Care/sasrec_pretrain.pt (NDCG@10=0.0080)
+[epoch  41/200] loss=1.0859  elapsed=164s
+[epoch  42/200] loss=1.0813  elapsed=167s
+[epoch  43/200] loss=1.0767  elapsed=169s
+[epoch  44/200] loss=1.0745  elapsed=172s
+[epoch  45/200] loss=1.0716  elapsed=175s
+[epoch  46/200] loss=1.0703  elapsed=177s
+[epoch  47/200] loss=1.0681  elapsed=180s
+[epoch  48/200] loss=1.0641  elapsed=182s
+[epoch  49/200] loss=1.0658  elapsed=185s
+[epoch  50/200] loss=1.0623  elapsed=188s
+[epoch  51/200] loss=1.0593  elapsed=190s
+[epoch  52/200] loss=1.0526  elapsed=193s
+[epoch  53/200] loss=1.0546  elapsed=195s
+[epoch  54/200] loss=1.0531  elapsed=198s
+[epoch  55/200] loss=1.0521  elapsed=201s
+[epoch  56/200] loss=1.0498  elapsed=203s
+[epoch  57/200] loss=1.0513  elapsed=206s
+[epoch  58/200] loss=1.0462  elapsed=208s
+[epoch  59/200] loss=1.0471  elapsed=211s
+[epoch  60/200] loss=1.0424  elapsed=214s
+  [eval val] epoch=60
+  val @ 5: Recall=0.0097  NDCG=0.0063  MRR=0.0052
+  val @10: Recall=0.0172  NDCG=0.0087  MRR=0.0062
+  val @20: Recall=0.0290  NDCG=0.0117  MRR=0.0070
+  [ckpt] saved → checkpoints/Beauty_and_Personal_Care/sasrec_pretrain.pt (NDCG@10=0.0087)
+[epoch  61/200] loss=1.0376  elapsed=242s
+[epoch  62/200] loss=1.0362  elapsed=245s
+[epoch  63/200] loss=1.0318  elapsed=247s
+[epoch  64/200] loss=1.0282  elapsed=250s
+[epoch  65/200] loss=1.0263  elapsed=253s
+[epoch  66/200] loss=1.0242  elapsed=255s
+[epoch  67/200] loss=1.0216  elapsed=258s
+[epoch  68/200] loss=1.0225  elapsed=261s
+[epoch  69/200] loss=1.0187  elapsed=263s
+[epoch  70/200] loss=1.0134  elapsed=266s
+[epoch  71/200] loss=1.0111  elapsed=268s
+[epoch  72/200] loss=1.0129  elapsed=271s
+[epoch  73/200] loss=1.0094  elapsed=273s
+[epoch  74/200] loss=1.0029  elapsed=276s
+[epoch  75/200] loss=1.0060  elapsed=279s
+[epoch  76/200] loss=1.0058  elapsed=281s
+[epoch  77/200] loss=1.0032  elapsed=284s
+[epoch  78/200] loss=1.0005  elapsed=287s
+[epoch  79/200] loss=1.0010  elapsed=289s
+[epoch  80/200] loss=1.0012  elapsed=292s
+  [eval val] epoch=80
+  val @ 5: Recall=0.0101  NDCG=0.0067  MRR=0.0056
+  val @10: Recall=0.0188  NDCG=0.0095  MRR=0.0068
+  val @20: Recall=0.0299  NDCG=0.0123  MRR=0.0076
+  [ckpt] saved → checkpoints/Beauty_and_Personal_Care/sasrec_pretrain.pt (NDCG@10=0.0095)
+[epoch  81/200] loss=0.9959  elapsed=321s
+[epoch  82/200] loss=0.9963  elapsed=323s
+[epoch  83/200] loss=0.9946  elapsed=326s
+[epoch  84/200] loss=0.9935  elapsed=329s
+[epoch  85/200] loss=0.9939  elapsed=331s
+[epoch  86/200] loss=0.9921  elapsed=334s
+[epoch  87/200] loss=0.9927  elapsed=337s
+[epoch  88/200] loss=0.9895  elapsed=339s
+[epoch  89/200] loss=0.9879  elapsed=342s
+[epoch  90/200] loss=0.9865  elapsed=345s
+[epoch  91/200] loss=0.9853  elapsed=348s
+[epoch  92/200] loss=0.9824  elapsed=350s
+[epoch  93/200] loss=0.9860  elapsed=353s
+[epoch  94/200] loss=0.9802  elapsed=356s
+[epoch  95/200] loss=0.9800  elapsed=358s
+[epoch  96/200] loss=0.9790  elapsed=361s
+[epoch  97/200] loss=0.9783  elapsed=363s
+[epoch  98/200] loss=0.9810  elapsed=366s
+[epoch  99/200] loss=0.9768  elapsed=368s
+[epoch 100/200] loss=0.9802  elapsed=371s
+  [eval val] epoch=100
+  val @ 5: Recall=0.0117  NDCG=0.0078  MRR=0.0065
+  val @10: Recall=0.0203  NDCG=0.0105  MRR=0.0076
+  val @20: Recall=0.0332  NDCG=0.0138  MRR=0.0085
+  [ckpt] saved → checkpoints/Beauty_and_Personal_Care/sasrec_pretrain.pt (NDCG@10=0.0105)
+[epoch 101/200] loss=0.9709  elapsed=400s
+[epoch 102/200] loss=0.9758  elapsed=402s
+[epoch 103/200] loss=0.9727  elapsed=405s
+[epoch 104/200] loss=0.9718  elapsed=407s
+[epoch 105/200] loss=0.9700  elapsed=410s
+[epoch 106/200] loss=0.9703  elapsed=412s
+[epoch 107/200] loss=0.9712  elapsed=415s
+[epoch 108/200] loss=0.9677  elapsed=418s
+[epoch 109/200] loss=0.9626  elapsed=420s
+[epoch 110/200] loss=0.9694  elapsed=423s
+[epoch 111/200] loss=0.9665  elapsed=425s
+[epoch 112/200] loss=0.9622  elapsed=428s
+[epoch 113/200] loss=0.9625  elapsed=431s
+[epoch 114/200] loss=0.9616  elapsed=433s
+[epoch 115/200] loss=0.9621  elapsed=436s
+[epoch 116/200] loss=0.9605  elapsed=438s
+[epoch 117/200] loss=0.9541  elapsed=441s
+[epoch 118/200] loss=0.9539  elapsed=444s
+[epoch 119/200] loss=0.9534  elapsed=446s
+[epoch 120/200] loss=0.9552  elapsed=449s
+  [eval val] epoch=120
+  val @ 5: Recall=0.0107  NDCG=0.0065  MRR=0.0051
+  val @10: Recall=0.0181  NDCG=0.0089  MRR=0.0061
+  val @20: Recall=0.0306  NDCG=0.0120  MRR=0.0069
+[epoch 121/200] loss=0.9511  elapsed=477s
+[epoch 122/200] loss=0.9498  elapsed=480s
+[epoch 123/200] loss=0.9459  elapsed=482s
+[epoch 124/200] loss=0.9455  elapsed=485s
+[epoch 125/200] loss=0.9468  elapsed=487s
+[epoch 126/200] loss=0.9457  elapsed=490s
+[epoch 127/200] loss=0.9423  elapsed=493s
+[epoch 128/200] loss=0.9421  elapsed=495s
+[epoch 129/200] loss=0.9404  elapsed=498s
+[epoch 130/200] loss=0.9411  elapsed=501s
+[epoch 131/200] loss=0.9424  elapsed=503s
+[epoch 132/200] loss=0.9460  elapsed=506s
+[epoch 133/200] loss=0.9418  elapsed=508s
+[epoch 134/200] loss=0.9375  elapsed=511s
+[epoch 135/200] loss=0.9399  elapsed=514s
+[epoch 136/200] loss=0.9374  elapsed=516s
+[epoch 137/200] loss=0.9336  elapsed=519s
+[epoch 138/200] loss=0.9335  elapsed=521s
+[epoch 139/200] loss=0.9302  elapsed=524s
+[epoch 140/200] loss=0.9351  elapsed=526s
+  [eval val] epoch=140
+  val @ 5: Recall=0.0093  NDCG=0.0063  MRR=0.0052
+  val @10: Recall=0.0160  NDCG=0.0084  MRR=0.0061
+  val @20: Recall=0.0279  NDCG=0.0114  MRR=0.0069
+[epoch 141/200] loss=0.9303  elapsed=555s
+[epoch 142/200] loss=0.9296  elapsed=557s
+[epoch 143/200] loss=0.9304  elapsed=560s
+[epoch 144/200] loss=0.9299  elapsed=563s
+[epoch 145/200] loss=0.9282  elapsed=565s
+[epoch 146/200] loss=0.9266  elapsed=568s
+[epoch 147/200] loss=0.9224  elapsed=570s
+[epoch 148/200] loss=0.9276  elapsed=573s
+[epoch 149/200] loss=0.9232  elapsed=575s
+[epoch 150/200] loss=0.9221  elapsed=578s
+[epoch 151/200] loss=0.9183  elapsed=581s
+[epoch 152/200] loss=0.9187  elapsed=583s
+[epoch 153/200] loss=0.9207  elapsed=586s
+[epoch 154/200] loss=0.9199  elapsed=589s
+[epoch 155/200] loss=0.9145  elapsed=591s
+[epoch 156/200] loss=0.9096  elapsed=594s
+[epoch 157/200] loss=0.9148  elapsed=596s
+[epoch 158/200] loss=0.9142  elapsed=599s
+[epoch 159/200] loss=0.9088  elapsed=602s
+[epoch 160/200] loss=0.9090  elapsed=604s
+  [eval val] epoch=160
+  val @ 5: Recall=0.0088  NDCG=0.0056  MRR=0.0046
+  val @10: Recall=0.0143  NDCG=0.0074  MRR=0.0053
+  val @20: Recall=0.0243  NDCG=0.0099  MRR=0.0060
+[epoch 161/200] loss=0.9129  elapsed=632s
+[epoch 162/200] loss=0.9061  elapsed=635s
+[epoch 163/200] loss=0.9087  elapsed=637s
+[epoch 164/200] loss=0.9049  elapsed=640s
+[epoch 165/200] loss=0.9064  elapsed=643s
+[epoch 166/200] loss=0.9091  elapsed=645s
+[epoch 167/200] loss=0.9061  elapsed=648s
+[epoch 168/200] loss=0.9025  elapsed=650s
+[epoch 169/200] loss=0.8988  elapsed=653s
+[epoch 170/200] loss=0.9022  elapsed=656s
+[epoch 171/200] loss=0.9030  elapsed=658s
+[epoch 172/200] loss=0.8960  elapsed=661s
+[epoch 173/200] loss=0.9026  elapsed=663s
+[epoch 174/200] loss=0.9041  elapsed=666s
+[epoch 175/200] loss=0.9023  elapsed=669s
+[epoch 176/200] loss=0.9005  elapsed=671s
+[epoch 177/200] loss=0.8972  elapsed=674s
+[epoch 178/200] loss=0.8943  elapsed=676s
+[epoch 179/200] loss=0.8983  elapsed=679s
+[epoch 180/200] loss=0.8912  elapsed=682s
+  [eval val] epoch=180
+  val @ 5: Recall=0.0069  NDCG=0.0046  MRR=0.0038
+  val @10: Recall=0.0114  NDCG=0.0060  MRR=0.0044
+  val @20: Recall=0.0190  NDCG=0.0079  MRR=0.0049
+[epoch 181/200] loss=0.9004  elapsed=710s
+[epoch 182/200] loss=0.8994  elapsed=713s
+[epoch 183/200] loss=0.8959  elapsed=716s
+[epoch 184/200] loss=0.9007  elapsed=718s
+[epoch 185/200] loss=0.8910  elapsed=721s
+[epoch 186/200] loss=0.8943  elapsed=723s
+[epoch 187/200] loss=0.8931  elapsed=726s
+[epoch 188/200] loss=0.8989  elapsed=729s
+[epoch 189/200] loss=0.8935  elapsed=731s
+[epoch 190/200] loss=0.8922  elapsed=734s
+[epoch 191/200] loss=0.8932  elapsed=736s
+[epoch 192/200] loss=0.8967  elapsed=739s
+[epoch 193/200] loss=0.8925  elapsed=742s
+[epoch 194/200] loss=0.8890  elapsed=744s
+[epoch 195/200] loss=0.8901  elapsed=747s
+[epoch 196/200] loss=0.8923  elapsed=749s
+[epoch 197/200] loss=0.8899  elapsed=752s
+[epoch 198/200] loss=0.8884  elapsed=755s
+[epoch 199/200] loss=0.8871  elapsed=757s
+[epoch 200/200] loss=0.8885  elapsed=760s
+  [eval val] epoch=200
+  val @ 5: Recall=0.0054  NDCG=0.0038  MRR=0.0033
+  val @10: Recall=0.0104  NDCG=0.0054  MRR=0.0039
+  val @20: Recall=0.0184  NDCG=0.0074  MRR=0.0045
+
+[train] Done. Best val NDCG@10=0.0105 at epoch 100
+[train] Checkpoint: checkpoints/Beauty_and_Personal_Care/sasrec_pretrain.pt
+
+[eval test] Loading best checkpoint...
+  [test metrics — overall]
+  test/overall @ 5: Recall=0.0126  NDCG=0.0082  MRR=0.0067
+  test/overall @10: Recall=0.0197  NDCG=0.0105  MRR=0.0077
+  test/overall @20: Recall=0.0325  NDCG=0.0136  MRR=0.0085
+  [warm n=15895  cold n=2192]
+  test/warm   @ 5: Recall=0.0125  NDCG=0.0081  MRR=0.0067
+  test/warm   @10: Recall=0.0195  NDCG=0.0104  MRR=0.0076
+  test/warm   @20: Recall=0.0319  NDCG=0.0135  MRR=0.0085
+  test/cold   @ 5: Recall=0.0137  NDCG=0.0085  MRR=0.0069
+  test/cold   @10: Recall=0.0214  NDCG=0.0110  MRR=0.0078
+  test/cold   @20: Recall=0.0370  NDCG=0.0149  MRR=0.0089
+[train] Results saved → checkpoints/Beauty_and_Personal_Care/results.json

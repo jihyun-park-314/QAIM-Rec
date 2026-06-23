@@ -1,0 +1,17 @@
+# LLM config for P1-base — gemma4:12b (parity test vs gemma4:26b)
+# Same settings as p1.yaml; model_id only changed.
+
+model_id: gemma4:12b
+api_url: http://localhost:11434/api/chat
+
+temperature: 0.0
+max_new_tokens: 1200
+retry_max_new_tokens: 4096
+
+think: false
+format_json: true
+
+prompt_version: p1_v1
+cache_db: data/llm_cache/llm_cache_12b.sqlite
+
+retry_max: 2

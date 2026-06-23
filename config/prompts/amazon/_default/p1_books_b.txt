@@ -1,0 +1,55 @@
+You extract WHY a reader chose/read this book and WHAT they valued.
+Guard: the review text is the primary — and often only — evidence source. Metadata (title/category/description) is disambiguation context only, NOT a source for constructing intent.
+
+Output strict JSON:
+{
+  "contextual_intent": str,
+  "preference_summary": str,
+  "evidence_span": [str],
+  "is_discriminative": bool,
+  "grounding_level": "review_only"|"review_plus_metadata"|"metadata_dominant"
+}
+
+Rules:
+- contextual_intent: specific reading/purchase context in 1 sentence derived from review signals. NOT a category/genre restatement, NOT the book title, author, or series name.
+- preference_summary: 1–2 sentences on reader level, pacing preference, writing style, emotional need, immersion, or selection criteria extracted from the review. NO title/author/series/ISBN/character names.
+- evidence_span: 1–2 exact verbatim phrases from the review that directly support contextual_intent and preference_summary. Never invent text.
+- is_discriminative: true when the review names ANY query-activatable reading dimension along which books DIFFER — pacing (page-turner/slow-burn), emotional tone (moving/comforting), immersion, character depth, reader level, writing style, structure, situational context, or series continuation. A dimension does NOT have to be unusual or unique to this reader; a common-but-contrastive dimension (e.g. "fast-paced") still counts. false ONLY when the review is pure approval/valence with no such dimension ("loved it", "great book", "amazing", "highly recommend"), OR when the only useful signal comes from metadata (grounding_level="metadata_dominant"). Intensity words like "engrossing", "immersive", "interesting" are NOT automatically false — judge whether they imply a contrastive axis (e.g. immersion) or are bare approval. When is_discriminative is false, set contextual_intent="" and preference_summary="".
+- grounding_level:
+    "review_only"           — intent and preference fully supported by review text.
+    "review_plus_metadata"  — review carries the primary signal; metadata (category/description) clarifies ambiguity.
+    "metadata_dominant"     — the review itself is too generic; the only useful signal comes from metadata. Records with this grounding level are excluded from memory construction.
+- Metadata use policy: use metadata strictly to disambiguate unclear review signals (e.g. confirm fiction vs. non-fiction context). Do NOT generate contextual_intent primarily from the title, category, or description. If the review is generic and you would need metadata to fill an otherwise empty intent, set is_discriminative=false and grounding_level="metadata_dominant".
+- NEVER output a book title, author name, series name, ISBN, or character name in any field.
+- Do NOT hallucinate content absent from the review text.
+
+The contrast test (apply to decide is_discriminative): "Does the review point to a dimension along which books DIFFER (pacing, emotion, immersion, character, level, style, structure, situational context, series), such that a reader's query could select for it?" If yes -> true. If the review only expresses that the book was good/enjoyed, with no such dimension -> false.
+
+EXAMPLES:
+
+GOOD (pacing / momentum):
+  Review: "Couldn't put it down — fast-paced with twists every chapter."
+-> {"contextual_intent": "fast-paced, plot-driven reading", "preference_summary": "values momentum and frequent plot twists; reads for suspense and page-turning pace", "evidence_span": ["fast-paced with twists every chapter"], "is_discriminative": true, "grounding_level": "review_only"}
+
+GOOD (emotional tone / affective resonance):
+  Review: "Beautifully written, it moved me to tears by the end."
+-> {"contextual_intent": "emotionally immersive reading", "preference_summary": "seeks affective depth and emotionally resonant storytelling", "evidence_span": ["moved me to tears by the end"], "is_discriminative": true, "grounding_level": "review_only"}
+
+GOOD (series continuation):
+  Review: "The 4th in the series and still going strong — can't wait for the next."
+-> {"contextual_intent": "ongoing engagement with a long-running series", "preference_summary": "values consistency and continuity across an installment series", "evidence_span": ["4th in the series", "can't wait for the next"], "is_discriminative": true, "grounding_level": "review_only"}
+
+GOOD (situational need):
+  Review: "I was going through a rough patch and needed something light but compelling. The plot moved quickly and I found myself laughing despite everything."
+-> {"contextual_intent": "light escapist reading during a difficult personal period", "preference_summary": "prefers fast-paced humorous plots; needs emotional relief without heavy themes", "evidence_span": ["going through a rough patch", "laughing despite everything"], "is_discriminative": true, "grounding_level": "review_only"}
+
+BAD (axis-less pure approval — reject this pattern, leave intent empty):
+  Review: "Loved this book! Great read. Highly recommend to everyone."
+-> {"contextual_intent": "", "preference_summary": "", "evidence_span": [], "is_discriminative": false, "grounding_level": "review_only"}
+  [pure approval/valence; no dimension along which books differ. Do not invent "general reading satisfaction" — that is not a selectable reading mode.]
+
+BAD (metadata-driven only — reject this pattern, leave intent empty):
+  Review: "Great book."
+  Metadata: Title="<a mystery thriller>", Category="Mystery, Thriller & Suspense"
+-> {"contextual_intent": "", "preference_summary": "", "evidence_span": [], "is_discriminative": false, "grounding_level": "metadata_dominant"}
+  [the review carries no usable signal; constructing "mystery thriller interest" would be reading intent off the category, not the review.]

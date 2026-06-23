@@ -1,0 +1,172 @@
+{
+  "dump_path": "data/memory_full_test/memory_b_u20_seed42.jsonl",
+  "k_personal_distribution": {
+    "n_users": 20,
+    "k_distribution": {
+      "0": 1,
+      "1": 9,
+      "2": 8,
+      "3": 2
+    },
+    "k0": {
+      "n": 1,
+      "rate": 0.05
+    },
+    "k1": {
+      "n": 9,
+      "rate": 0.45
+    },
+    "k2plus": {
+      "n": 10,
+      "rate": 0.5
+    },
+    "mean_k": 1.55
+  },
+  "tau_sweep": [
+    {
+      "tau": 0.25,
+      "k_distribution": {
+        "0": 1,
+        "1": 5,
+        "2": 5,
+        "3": 8,
+        "5": 1
+      },
+      "mean_k": 2.2,
+      "k0_rate": 0.05,
+      "k2plus_rate": 0.7
+    },
+    {
+      "tau": 0.3,
+      "k_distribution": {
+        "0": 1,
+        "1": 9,
+        "2": 8,
+        "3": 2
+      },
+      "mean_k": 1.55,
+      "k0_rate": 0.05,
+      "k2plus_rate": 0.5
+    },
+    {
+      "tau": 0.35,
+      "k_distribution": {
+        "0": 1,
+        "1": 15,
+        "2": 4
+      },
+      "mean_k": 1.15,
+      "k0_rate": 0.05,
+      "k2plus_rate": 0.2
+    }
+  ],
+  "synth_spot_checks": [
+    {
+      "user_id": 21,
+      "k_personal": 2,
+      "n_units": 2,
+      "units": [
+        {
+          "memory_id": "mem_89c23914d551",
+          "intent_description": "exploring alternate history through immersive world-building",
+          "preference_summary": "deep narratives blend stories narrative well-developed alien species diverse ensembles where human-centric",
+          "source_text_preview": "exploring alternate history through immersive world-building deep narratives blend stories narrative well-developed alien species diverse ensembles where human-centric",
+          "cluster_size": 4,
+          "leakage_detected": true
+        },
+        {
+          "memory_id": "mem_9ec923633aa5",
+          "intent_description": "completion of a long-running series",
+          "preference_summary": "narrative closure sense resolution established saga",
+          "source_text_preview": "completion of a long-running series narrative closure sense resolution established saga",
+          "cluster_size": 1,
+          "leakage_detected": true
+        }
+      ]
+    },
+    {
+      "user_id": 6428,
+      "k_personal": 1,
+      "n_units": 1,
+      "units": [
+        {
+          "memory_id": "mem_05d197048d1f",
+          "intent_description": "seeking evolution and increased complexity within an established long-running series",
+          "preference_summary": "character plot narrative growth shifting moral stakes repetitive formulas innovation high-stakes dilemmas",
+          "source_text_preview": "seeking evolution and increased complexity within an established long-running series character plot narrative growth shifting moral stakes repetitive formulas innovation high-stakes dilemmas",
+          "cluster_size": 2,
+          "leakage_detected": false
+        }
+      ]
+    },
+    {
+      "user_id": 1548,
+      "k_personal": 0,
+      "n_units": 0,
+      "units": []
+    }
+  ],
+  "prototypes": {
+    "n_prototypes": 4,
+    "cluster_sizes": [
+      83,
+      8,
+      3,
+      1
+    ],
+    "examples": [
+      {
+        "proto_rank": 0,
+        "cluster_size": 83,
+        "intent_description": "continued engagement with a specific character-driven series",
+        "source_text_preview": "continued engagement with a specific character-driven series character narratives narrative stories immersive development plot deep storytelling world-building fast-paced high complex series twists"
+      },
+      {
+        "proto_rank": 1,
+        "cluster_size": 8,
+        "intent_description": "engaging, detail-oriented creative activity",
+        "source_text_preview": "engaging, detail-oriented creative activity intricate designs complexity information artistic significant detailed imagery allows creative expression educational beautiful balance content"
+      },
+      {
+        "proto_rank": 2,
+        "cluster_size": 3,
+        "intent_description": "intellectual exploration of social science and political behavior",
+        "source_text_preview": "intellectual exploration of social science and political behavior societal narratives insightful analytical non-fiction explains complex human motivations patterns focused limitations lived experience"
+      },
+      {
+        "proto_rank": 3,
+        "cluster_size": 1,
+        "intent_description": "searching for straightforward, approachable recipes for various occasions",
+        "source_text_preview": "searching for straightforward, approachable recipes for various occasions clarity ease execution step-by-step instructions visual aids simple traditional comfort food"
+      }
+    ],
+    "k0_coverage": 1
+  },
+  "bank": {
+    "n_users_in_bank": 20,
+    "k2plus_personal": {
+      "n": 10,
+      "rate": 0.5
+    },
+    "k1_personal": {
+      "n": 9,
+      "rate": 0.45
+    },
+    "k0_prototype": {
+      "n": 1,
+      "rate": 0.05
+    },
+    "k0_default": {
+      "n": 0,
+      "rate": 0.0
+    },
+    "leakage_violations": 0,
+    "leakage_pass": true
+  },
+  "summary": {
+    "n_users_validated": 20,
+    "clustering_matches_v045": true,
+    "leakage_pass": true,
+    "k0_has_prototype_coverage": false
+  }
+}

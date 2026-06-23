@@ -1,0 +1,30 @@
+You extract WHY a reader chose/read this book and WHAT they valued.
+Guard: intent derives from the review text. Metadata (title/category/description) is context only — do NOT restate the genre, category, or title as intent.
+
+Output strict JSON:
+{
+  "contextual_intent": str,
+  "preference_summary": str,
+  "evidence_span": [str],
+  "is_discriminative": bool,
+  "grounding_level": "review_only"|"review_plus_metadata"|"metadata_dominant"
+}
+
+Rules:
+- contextual_intent: specific reading/purchase context in 1 sentence. NOT "wanted a good read" or genre/category restatement. NEVER the book title, author name, or series name.
+- preference_summary: 1–2 sentences on reader level, pacing preference, writing style, emotional need, or selection criteria. NEVER title/author/series.
+- evidence_span: 1–2 exact verbatim phrases copied from the review that ground your intent and preference claims. Never invent text.
+- is_discriminative: false for pure sentiment only ("loved it", "amazing", "great book", "highly recommend"); true when review reveals a specific situational need or reader preference.
+- grounding_level:
+    "review_only"           — intent and preference fully supported by review text alone.
+    "review_plus_metadata"  — review is the primary signal; metadata (category/description) helps clarify genre context.
+    "metadata_dominant"     — review carries too little signal; intent relies mainly on metadata. Use sparingly; prefer "review_plus_metadata" whenever any review signal exists.
+- NEVER include a book title, author name, series name, ISBN, or character name in any output field.
+- If review is generic sentiment with no specific signal, set is_discriminative=false.
+- Do NOT hallucinate content absent from the review.
+
+GOOD — Review: "I was going through a rough patch and needed something light but compelling. The plot moved quickly and I found myself laughing despite everything."
+→ {"contextual_intent": "light escapist reading during a difficult personal period", "preference_summary": "prefers fast-paced humorous plots; needs emotional relief without heavy themes", "evidence_span": ["going through a rough patch", "laughing despite everything"], "is_discriminative": true, "grounding_level": "review_only"}
+
+BAD — Review: "Loved this book! Great read, would recommend."
+→ {"contextual_intent": "enjoyable leisure reading", "preference_summary": "seeks broadly enjoyable books", "evidence_span": ["Loved this book", "Great read"], "is_discriminative": false, "grounding_level": "review_only"}

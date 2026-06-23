@@ -1,0 +1,90 @@
+
+============================================================
+[preprocess] category=Books, n_users=50000, strategy=random, seed=42
+============================================================
+
+[A1] Loading and deduplicating...
+  [load] 2,000,000 lines, 1,994,935 unique (user,item) pairs
+  [load] 4,000,000 lines, 3,987,286 unique (user,item) pairs
+  [load] 6,000,000 lines, 5,978,190 unique (user,item) pairs
+  [load] 8,000,000 lines, 7,968,502 unique (user,item) pairs
+  [load] 10,000,000 lines, 9,957,774 unique (user,item) pairs
+  [load] 12,000,000 lines, 11,948,612 unique (user,item) pairs
+  [load] 14,000,000 lines, 13,932,568 unique (user,item) pairs
+  [load] 16,000,000 lines, 15,913,504 unique (user,item) pairs
+  [load] 18,000,000 lines, 17,893,114 unique (user,item) pairs
+  [load] 20,000,000 lines, 19,878,514 unique (user,item) pairs
+  [load] 22,000,000 lines, 21,852,288 unique (user,item) pairs
+  [load] 24,000,000 lines, 23,793,923 unique (user,item) pairs
+  [load] 26,000,000 lines, 25,752,439 unique (user,item) pairs
+  [load] 28,000,000 lines, 27,722,422 unique (user,item) pairs
+  [load] 29,475,453 raw lines → 29,139,329 unique (user,item) pairs
+
+[A2] 5-core filtering...
+  [5-core] iter 1: 29,139,329 → 12,146,410
+  [5-core] iter 2: 12,146,410 → 10,396,994
+  [5-core] iter 3: 10,396,994 → 9,811,689
+  [5-core] iter 4: 9,811,689 → 9,622,126
+  [5-core] iter 5: 9,622,126 → 9,541,476
+  [5-core] iter 6: 9,541,476 → 9,511,365
+  [5-core] iter 7: 9,511,365 → 9,498,080
+  [5-core] iter 8: 9,498,080 → 9,492,930
+  [5-core] iter 9: 9,492,930 → 9,490,529
+  [5-core] iter 10: 9,490,529 → 9,489,469
+  [5-core] iter 11: 9,489,469 → 9,488,904
+  [5-core] iter 12: 9,488,904 → 9,488,607
+  [5-core] iter 13: 9,488,607 → 9,488,435
+  [5-core] iter 14: 9,488,435 → 9,488,372
+  [5-core] iter 15: 9,488,372 → 9,488,317
+  [5-core] iter 16: 9,488,317 → 9,488,301
+  [5-core] iter 17: 9,488,301 → 9,488,297
+  [5-core] converged: 9,488,297 interactions, 776,370 users, 495,063 items
+
+[A3] Subsampling 50,000 users (strategy=random) + re-5-core...
+  [subsample] strategy=random: 50,000 from 776,370 (activity range: 5–815) → 606,675 interactions
+  [5-core] iter 1: 606,675 → 233,512
+  [5-core] iter 2: 233,512 → 165,725
+  [5-core] iter 3: 165,725 → 138,185
+  [5-core] iter 4: 138,185 → 124,950
+  [5-core] iter 5: 124,950 → 117,671
+  [5-core] iter 6: 117,671 → 113,451
+  [5-core] iter 7: 113,451 → 110,856
+  [5-core] iter 8: 110,856 → 109,192
+  [5-core] iter 9: 109,192 → 108,086
+  [5-core] iter 10: 108,086 → 107,293
+  [5-core] iter 11: 107,293 → 106,806
+  [5-core] iter 12: 106,806 → 106,499
+  [5-core] iter 13: 106,499 → 106,305
+  [5-core] iter 14: 106,305 → 106,170
+  [5-core] iter 15: 106,170 → 106,098
+  [5-core] iter 16: 106,098 → 106,042
+  [5-core] iter 17: 106,042 → 106,010
+  [5-core] iter 18: 106,010 → 105,974
+  [5-core] iter 19: 105,974 → 105,955
+  [5-core] iter 20: 105,955 → 105,939
+  [5-core] iter 21: 105,939 → 105,923
+  [5-core] iter 22: 105,923 → 105,919
+  [5-core] iter 23: 105,919 → 105,915
+  [5-core] iter 24: 105,915 → 105,911
+  [5-core] iter 25: 105,911 → 105,907
+  [5-core] converged: 105,907 interactions, 10,566 users, 9,041 items
+  [subsample] after re-5-core: 10,566 users, 9,041 items, 105,907 interactions
+
+[A4] Building ID maps...
+  [output] id_maps.json → data/processed/Books/id_maps.json
+
+[A5] Building LOO splits...
+  [split] 10,566 users, temporal_cutoff=1675657146987, flagged=10037
+  [output] splits.json → data/processed/Books/splits.json
+
+[A6] Writing outputs...
+  [output] sasrec.txt → data/processed/Books/sasrec.txt (105,907 lines)
+  [output] sequences.jsonl → data/processed/Books/sequences.jsonl
+  [output] volume_report.json → data/processed/Books/volume_report.json
+
+[preprocess] Done: Books
+  Users: 10,566
+  Items: 9,041
+  Interactions: 105,907
+  Eligible interactions: 62,607 (59.1%)
+  Eligible users: 9,807 (92.8%)
