@@ -141,6 +141,7 @@ def synthesize_all(
     """
     all_units = []
     for user_data in cluster_data:
-        units = synthesize_user(user_data, tau=tau)
+        evidence_map = user_data.get("evidence_map")
+        units = synthesize_user(user_data, tau=tau, evidence_map=evidence_map)
         all_units.extend(units)
     return all_units

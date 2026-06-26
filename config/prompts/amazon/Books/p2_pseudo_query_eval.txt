@@ -1,0 +1,26 @@
+Convert this book review into the search query the reader most likely typed BEFORE buying this book.
+The query should express what this reader was looking for as a general reading need — not what they found.
+
+Output strict JSON only:
+{"query": string | null}
+
+STRICT RULES:
+- Write in 1st-person natural search language: "I'm looking for...", "books about...", "novels with..."
+- 4–15 words
+- MUST NOT contain: exact title, author name, series name, or any unique plot detail that
+  identifies this specific book (e.g. named characters, unique settings, distinctive premise)
+- Express the reading need in generalized terms:
+    genre/subgenre, pacing, emotional tone (cozy, dark, uplifting), themes,
+    narrative structure (unreliable narrator, dual timeline, epistolary),
+    reader level (YA, literary fiction), series/standalone preference, length
+  Examples:
+    "I'm looking for slow-burn psychological thriller with unreliable narrator"
+    "literary fiction family saga multigenerational historical"
+    "cozy mystery series small town amateur sleuth"
+    "hard sci-fi first contact novel detailed world-building"
+- Output {"query": null} ONLY if the review expresses nothing but satisfaction
+  ("loved it", "great book", "five stars", "highly recommend") without revealing a reading need
+
+Item title (context only — do NOT copy title, author, or series name into query): {title}
+Category: Books
+Review: """{review_text}"""

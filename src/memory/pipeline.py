@@ -113,6 +113,147 @@ def check_leakage(source_text: str, title: str, min_token_len: int = 4) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Leakage detector v2 — distinctiveness-based (post-hoc sidecar, STEP 2)
+
+# Genre/category words that commonly appear in both titles and legitimate intent
+# expressions, causing false positives in the unigram detector.
+_GENRE_WORDS: frozenset = frozenset([
+    "mystery", "romance", "thriller", "horror", "fantasy", "fiction", "nonfiction",
+    "novel", "biography", "memoir", "history", "historical", "science", "literary",
+    "classic", "adventure", "comedy", "drama", "action", "suspense", "crime",
+    "detective", "psychological", "paranormal", "supernatural", "dystopian",
+    "young", "adult", "children", "picture", "graphic", "series", "story", "stories",
+    "tale", "tales", "chronicles", "saga", "epic", "dark", "love", "life", "world",
+    "man", "woman", "girl", "boy", "house", "night", "day", "time", "new", "old",
+    "great", "little", "last", "first", "secret", "lost", "dead", "blood", "black",
+    "white", "red", "blue", "summer", "winter", "spring", "autumn", "fall",
+    "piano", "music", "war", "peace", "game", "fire", "water", "earth", "light",
+    "shadow", "heart", "soul", "mind", "body", "death", "life", "dream", "hope",
+    "fear", "power", "truth", "magic", "dragon", "sword", "king", "queen",
+    "complete", "book", "guide", "complete", "edition", "volume", "part",
+])
+
+
+def build_common_tokens_from_titles(
+    titles: list[str],
+    df_threshold: float = 0.05,
+) -> frozenset:
+    """Build high-document-frequency token set from a corpus of titles.
+
+    Tokens appearing in >= df_threshold fraction of titles are considered
+    corpus-common and treated like genre words (not distinctive).
+    """
+    from collections import Counter
+    n = len(titles)
+    if n == 0:
+        return frozenset()
+    doc_freq: Counter = Counter()
+    for title in titles:
+        tokens = set(_tokenize(title))
+        for tok in tokens:
+            if tok not in _STOP_WORDS:
+                doc_freq[tok] += 1
+    threshold_count = max(1, int(df_threshold * n))
+    return frozenset(tok for tok, cnt in doc_freq.items() if cnt >= threshold_count)
+
+
+def check_leakage_v2(
+    source_text: str,
+    title: str,
+    author: str = "",
+    common_tokens: frozenset | None = None,
+) -> bool:
+    """Distinctiveness-based leakage detector (v2).
+
+    Leakage = True if:
+      (a) any consecutive 2+ distinctive title tokens appear as a phrase in
+          source_text, OR
+      (b) any author token (even single) appears in source_text.
+
+    Distinctive tokens = title tokens minus stopwords, genre words, and
+    corpus-common tokens (passed via common_tokens).
+
+    A single genre/common word in the title matching source_text is NOT leakage.
+    """
+    extra_common = common_tokens or frozenset()
+    exclude = _STOP_WORDS | _GENRE_WORDS | extra_common
+
+    title_toks = _tokenize(title)
+    distinctive = [t for t in title_toks if t not in exclude]
+
+    st_lower = source_text.lower()
+
+    # Check consecutive distinctive n-grams (n >= 2) as phrase match
+    for n in range(len(distinctive), 1, -1):
+        for start in range(len(distinctive) - n + 1):
+            phrase = " ".join(distinctive[start:start + n])
+            if phrase in st_lower:
+                return True
+
+    # Author check: any author token (even single) triggers leakage
+    if author:
+        author_toks = _tokenize(author)
+        for tok in author_toks:
+            if tok and tok not in _STOP_WORDS and tok in st_lower:
+                # Require word-boundary match to avoid substring false positives
+                if re.search(r"\b" + re.escape(tok) + r"\b", st_lower):
+                    return True
+
+    return False
+
+
+def recompute_leakage_field(
+    records: list[dict],
+    author_map: dict | None = None,
+    common_tokens: frozenset | None = None,
+) -> tuple[list[dict], dict]:
+    """Apply check_leakage_v2 post-hoc to a list of p1_extractions records.
+
+    Returns (updated_records, stats) where stats reports old vs new fire rate.
+    Does NOT modify extract_record() or the extraction pipeline.
+
+    author_map: {item_id -> author_str} from meta.jsonl. Pass None to skip
+                author-name leakage detection.
+    common_tokens: output of build_common_tokens_from_titles(), or None.
+    """
+    old_true = 0
+    new_true = 0
+    flipped_off = 0
+    flipped_on = 0
+    updated = []
+    for rec in records:
+        old_val = bool(rec.get("leakage_detected", False))
+        author = ""
+        if author_map is not None:
+            author = author_map.get(rec.get("item_id"), "") or ""
+        new_val = check_leakage_v2(
+            rec.get("source_text", ""),
+            rec.get("item_title", ""),
+            author=author,
+            common_tokens=common_tokens,
+        )
+        if old_val:
+            old_true += 1
+        if new_val:
+            new_true += 1
+        if old_val and not new_val:
+            flipped_off += 1
+        if not old_val and new_val:
+            flipped_on += 1
+        updated.append({**rec, "leakage_detected": new_val})
+
+    n = len(records)
+    stats = {
+        "n_records": n,
+        "old_fire_rate": round(old_true / max(n, 1), 4),
+        "new_fire_rate": round(new_true / max(n, 1), 4),
+        "flipped_off": flipped_off,  # FP removed
+        "flipped_on": flipped_on,    # previously missed, now caught
+    }
+    return updated, stats
+
+
+# ---------------------------------------------------------------------------
 # Extract + annotate one record
 
 def extract_record(

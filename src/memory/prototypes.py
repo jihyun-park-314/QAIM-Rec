@@ -25,13 +25,51 @@ def _make_proto_id(cluster_label: int, tau: float) -> str:
 def _agglomerative(
     vecs: np.ndarray, tau: float, k_max: int
 ) -> list[int]:
-    from sklearn.cluster import AgglomerativeClustering
+    """Hierarchical agglomerative clustering (average linkage).
 
+    For large N (>5000): pairwise distances computed on GPU via torch.cdist,
+    then passed to scipy.linkage on CPU. Falls back to pure sklearn if no GPU.
+    """
     n = len(vecs)
     if n <= 1:
         return [0] * n
 
     tau_euc = (2.0 * tau) ** 0.5
+
+    # GPU-hybrid path: torch.cdist for distance matrix, scipy for linkage
+    if n > 5000:
+        try:
+            import torch
+            from scipy.cluster.hierarchy import fcluster, linkage
+            from scipy.spatial.distance import squareform
+
+            dev = "cuda" if torch.cuda.is_available() else "cpu"
+            print(f"[proto] GPU-hybrid agglomerative: N={n}, device={dev}")
+
+            t = torch.tensor(vecs, dtype=torch.float32, device=dev)
+            # Chunked distance to avoid OOM on very large N
+            chunk = 4096
+            rows = []
+            for i in range(0, n, chunk):
+                rows.append(torch.cdist(t[i:i+chunk], t, p=2).cpu())
+            dist_mat = torch.cat(rows, dim=0).numpy()  # [N, N]
+            condensed = squareform(dist_mat, checks=False)
+            del dist_mat, t, rows
+
+            Z = linkage(condensed, method="average")
+            del condensed
+
+            labels = fcluster(Z, t=tau_euc, criterion="distance").tolist()
+            k = len(set(labels))
+            if k > k_max:
+                from scipy.cluster.hierarchy import cut_tree
+                labels = cut_tree(Z, n_clusters=k_max).flatten().tolist()
+            return labels
+
+        except Exception as e:
+            print(f"[proto] GPU-hybrid failed ({e}), falling back to sklearn")
+
+    from sklearn.cluster import AgglomerativeClustering
     clf = AgglomerativeClustering(
         n_clusters=None,
         distance_threshold=tau_euc,

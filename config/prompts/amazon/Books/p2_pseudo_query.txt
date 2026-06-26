@@ -1,0 +1,27 @@
+Convert this book review into the search query the reader likely typed BEFORE buying —
+phrased as a general reading-need, NOT identifying this specific book.
+
+Output strict JSON:
+{
+  "query": string | null   // 3-12 word natural search query, or null if no clear
+                            // pre-purchase need is expressed in the review
+}
+
+STRICT RULES:
+- MUST NOT contain: author names, exact book titles, series names, or unique plot details
+  that would identify this specific book.
+- MUST express the underlying reading-need in generalized terms.
+  Valid content: genre/subgenre, pacing (page-turner, slow-burn), emotional tone
+  (cozy, dark, uplifting), themes, reader level (YA, literary fiction), narrative structure
+  (unreliable narrator, epistolary), series continuity needs.
+  Examples:
+    "slow-burn psychological thriller with unreliable narrator"
+    "heartwarming historical fiction family saga easy read"
+    "hard sci-fi space opera with detailed world-building"
+    "short story collection literary fiction contemporary themes"
+- If the review expresses only satisfaction (e.g. "loved it", "great book", "highly recommend")
+  without revealing a reading-need, output {"query": null}.
+
+Item title: {title}   <!-- context only — do NOT copy title, author, or series tokens into the query -->
+Category: Books
+Review: """{review_text}"""

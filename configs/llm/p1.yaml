@@ -15,7 +15,7 @@ retry_max_new_tokens: 4096     # retry budget (used only on failure)
 think: false                   # disable gemma4 thinking tokens (options.think=false in payload)
 format_json: true              # add format:"json" at top level of Ollama payload
 
-prompt_version: p1_v1
+prompt_version: p1_v2
 cache_db: data/llm_cache/llm_cache.sqlite
 
 retry_max: 2
