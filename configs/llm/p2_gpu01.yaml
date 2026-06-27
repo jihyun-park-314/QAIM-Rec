@@ -1,0 +1,11 @@
+# LLM config for P2 pseudo-query generation — GPU 0,1 instance (port 11434).
+model_id: gemma4:26b
+api_url: http://localhost:11434/api/chat
+
+temperature: 0.0
+max_new_tokens: 128
+
+prompt_version: p2_v1
+cache_db: data/cache/llm_cache_p2_gpu01.sqlite
+
+retry_max: 2

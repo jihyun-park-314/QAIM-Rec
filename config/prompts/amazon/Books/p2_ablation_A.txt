@@ -1,6 +1,10 @@
 Given a review from Amazon, can you rephrase it with a first-person tone as if you are the customer looking for a product? Give me the rephrased output without saying anything else. Note that the name of the product must not show in the output since you are looking for it. You should ignore irrelevant information that doesn't help with the rewriting.
 
-Output strict JSON: {"query": str}
+Output strict JSON: {"query": str | null}
 - str: the rephrased query in first-person tone.
+- null: only if the review expresses nothing but satisfaction ("loved it", "great book",
+  "highly recommend") without revealing any reading need.
 
+Item title (context only — do NOT copy into output): {title}
+Category: Books
 Review: """{review_text}"""

@@ -1,0 +1,36 @@
+# Stage1 InfoNCE alignment training config (plan.md §3 M4 train_align.py)
+
+category: Books
+encoder_model_id: BAAI/bge-base-en-v1.5
+
+# Projection head: query-side only (h_memory stays frozen at bank vectors)
+proj_hidden_dim: 768     # hidden layer width (same as encoder output dim)
+proj_out_dim: 768        # must match bank vector dim for cosine sim
+
+# InfoNCE loss
+tau: 0.07                # temperature — standard for contrastive (SimCSE/E5 default)
+
+# Optimizer — LLaVA-style asymmetric: encoder lower, head higher (plan.md v0.4.14)
+lr_encoder: 2.0e-5       # conservative; bge pretraining LR was ~3e-5
+lr_head: 1.0e-4          # head starts random, needs faster convergence
+weight_decay: 0.01
+
+# Training
+batch_size: 64           # hard neg K≈11 + B-1 in-batch negs per query
+num_epochs: 3
+warmup_steps: 200
+max_grad_norm: 1.0
+seed: 42
+
+# In-batch negative mixing: include other queries' positives as additional negatives
+# (already handled by cross_entropy on [B, B+K] logit matrix)
+
+# Data
+pairs_path: data/processed/Books/align_pairs.jsonl
+bank_dir: data/processed/Books/memory_bank
+out_ckpt: checkpoints/Books/stage1_align_best.pt
+
+# Smoke mode (subset for gate check)
+smoke_pairs_path: data/processed/Books/align_pairs_smoke.jsonl
+smoke_steps: 20          # steps to check L_align descent
+smoke_routing_n: 28      # eval pairs for routing accuracy gate (all smoke pairs)
