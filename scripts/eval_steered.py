@@ -1,4 +1,4 @@
-"""STEP 2: First real steered Recall measurement using existing checkpoints.
+"""STEP 3-2: Steered Recall + recovery@N evaluation using STEP3-1 checkpoints.
 
 Runs 3 conditions on the *same* SASRec backbone (sasrec_pretrain.pt):
   vanilla   — no prefix (baseline)
@@ -61,12 +61,15 @@ def make_steered_prefix_fn(
     user_memories: dict[str, list[dict]],
     device: str,
     seed: int = 42,
+    routing_log: dict | None = None,
 ) -> callable:
     """Return a prefix_fn(user_id, seq_np) -> torch.Tensor | None.
 
     Uses the first available query for each user (deterministic).
     Routes to top-1 memory by cosine similarity with h_query.
     Falls back to None (vanilla) if user has no query or no memory.
+
+    If routing_log dict is provided, records {user_id: routed_mid} for recovery@N.
     """
     rng = random.Random(seed)
 
@@ -83,6 +86,7 @@ def make_steered_prefix_fn(
 
         if len(mems) == 1:
             h_m = text_enc.encode([mems[0]["text"]], is_query=False)
+            best_idx = 0
         else:
             mem_texts = [m["text"] for m in mems]
             h_mems = text_enc.encode(mem_texts, is_query=False)  # [k, d_text]
@@ -90,10 +94,156 @@ def make_steered_prefix_fn(
             best_idx = sims.argmax().item()
             h_m = h_mems[best_idx : best_idx + 1]  # [1, d_text]
 
+        if routing_log is not None:
+            routing_log[user_id] = mems[best_idx]["mid"]
+
         pfx = projector(h_q, h_m)  # [1, 1, d_sasrec]
         return pfx.to(device)
 
     return prefix_fn
+
+
+def _load_user_first_pos_mid(pairs_jsonl: str, mid_to_uid: dict) -> dict[str, str]:
+    """Load {uid_str: positive_memory_id} for each user's *first* query.
+
+    'First' matches queries[0] used in make_steered_prefix_fn — deterministic.
+    A routing is 'correct' iff routed_mid == this specific mid (not any of the user's mids).
+    """
+    user_first_mid: dict[str, str] = {}
+    with open(pairs_jsonl, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            uid = str(rec.get("user_id", ""))
+            if not uid and mid_to_uid:
+                uid = mid_to_uid.get(rec.get("positive_memory_id", ""), "")
+            mid = str(rec.get("positive_memory_id", ""))
+            if uid and mid and uid not in user_first_mid:
+                user_first_mid[uid] = mid
+    return user_first_mid
+
+
+def compute_recovery_at_n(
+    user_ranks: dict[int, int],
+    routing_log: dict[int, str],
+    user_first_mid: dict[str, str],
+    ks: list[int],
+    label: str,
+) -> None:
+    """Print recovery@N breakdown: correct vs wrong routing groups.
+
+    correct routing: routed_mid == user's first-query positive_memory_id exactly.
+    wrong routing: a different memory was selected (even from the same user).
+    """
+    correct_users = []
+    wrong_users = []
+    for uid, routed_mid in routing_log.items():
+        uid_s = str(uid)
+        correct_mid = user_first_mid.get(uid_s, "")
+        if uid not in user_ranks:
+            continue
+        if correct_mid and routed_mid == correct_mid:
+            correct_users.append(uid)
+        else:
+            wrong_users.append(uid)
+
+    n_correct = len(correct_users)
+    n_wrong = len(wrong_users)
+    routing_acc = n_correct / (n_correct + n_wrong) if (n_correct + n_wrong) > 0 else 0.0
+    print(f"\n  Recovery@N [{label}]:")
+    print(f"    routing accuracy = {routing_acc:.4f}  ({n_correct} correct / {n_correct+n_wrong} routed)")
+
+    for k in ks:
+        r_correct = (sum(1 for u in correct_users if user_ranks[u] < k) / n_correct
+                     if n_correct > 0 else float("nan"))
+        r_wrong = (sum(1 for u in wrong_users if user_ranks[u] < k) / n_wrong
+                   if n_wrong > 0 else float("nan"))
+        gap_str = f"{r_correct - r_wrong:+.4f}" if (n_correct > 0 and n_wrong > 0) else "n/a"
+        print(f"    Recall@{k:2d}:  correct={r_correct:.4f} (n={n_correct})  "
+              f"wrong={r_wrong:.4f} (n={n_wrong})  gap={gap_str}")
+
+
+@torch.no_grad()
+def evaluate_x_target(
+    model,
+    dataset: dict,
+    args,
+    prefix_fn,
+    user_source_ids: dict[str, list[int]],
+    max_users: int = 10_000,
+) -> tuple[dict[str, float], dict[int, int]]:
+    """Evaluate steered ranking where the target is source_item_id (X).
+
+    X = the item the query was written about — guaranteed in positive memory cluster.
+    This is Headline-1 (causal-closed eval): prefix should push representation toward X.
+
+    Masking: seen items excluding X itself (so X is always rankable).
+    Only evaluates users that have a query with a valid source_item_id.
+    """
+    model.eval()
+    dev = args.device
+    itemnum = dataset["itemnum"]
+    user_train = dataset["user_train"]
+
+    eligible = [
+        u for u in range(1, dataset["usernum"] + 1)
+        if user_train.get(u) and user_source_ids.get(str(u))
+    ]
+    if len(eligible) > max_users:
+        rng = random.Random(42)
+        eligible = rng.sample(eligible, max_users)
+
+    all_items = torch.arange(1, itemnum + 1, dtype=torch.long, device=dev)
+    all_item_embs = model.item_emb(all_items)
+
+    ks = [5, 10, 20]
+    accum = {f"Recall@{k}": 0.0 for k in ks}
+    n_valid = 0
+    user_ranks: dict[int, int] = {}
+
+    for u in eligible:
+        src = user_source_ids.get(str(u), [])
+        x = src[0] if src else None
+        if x is None or not (1 <= x <= itemnum):
+            continue
+
+        seq = np.zeros([args.maxlen], dtype=np.int32)
+        idx = args.maxlen - 1
+        for i in reversed(user_train[u]):
+            if idx == -1:
+                break
+            seq[idx] = i
+            idx -= 1
+
+        seq_np = seq[np.newaxis, :]
+        pfx = prefix_fn(u, seq_np) if prefix_fn is not None else None
+        log_feats, _ = model.log2feats(seq_np, prefix_embeds=pfx)
+        final_feat = log_feats[0, -1, :]
+        scores = all_item_embs.matmul(final_feat)
+
+        seen = set(user_train[u])
+        seen.discard(0)
+        seen.discard(x)  # keep X rankable even if it's in training history
+        seen_idx = torch.tensor([i - 1 for i in seen if 1 <= i <= itemnum],
+                                dtype=torch.long, device=dev)
+        if len(seen_idx) > 0:
+            scores[seen_idx] = -1e9
+
+        rank_of_x = (scores > scores[x - 1]).sum().item()
+        user_ranks[u] = rank_of_x
+
+        n_valid += 1
+        for k in ks:
+            if rank_of_x < k:
+                accum[f"Recall@{k}"] += 1.0
+
+    if n_valid == 0:
+        return {k: 0.0 for k in accum}, {}
+
+    metrics = {k: round(v / n_valid, 6) for k, v in accum.items()}
+    return metrics, user_ranks
 
 
 # ---------------------------------------------------------------------------
@@ -189,10 +339,13 @@ def main() -> None:
     print(f"  {len(user_memories)} users in bank")
 
     print(f"[data] Loading queries from {pairs_jsonl} ...")
-    user_queries = _load_pseudo_queries(pairs_jsonl, mid_to_uid=mid_to_uid)
+    user_queries, user_source_ids = _load_pseudo_queries(pairs_jsonl, mid_to_uid=mid_to_uid)
     print(f"  {len(user_queries)} users with queries")
     n_with_both = sum(1 for u in user_queries if u in user_memories)
     print(f"  {n_with_both} users have both query + memory (steerable)")
+
+    user_first_mid = _load_user_first_pos_mid(pairs_jsonl, mid_to_uid)
+    print(f"  {len(user_first_mid)} users with first-query positive_memory_id (for recovery@N)")
 
     # ── Vanilla condition ────────────────────────────────────────────────────
     print(f"\n{'='*60}")
@@ -222,8 +375,10 @@ def main() -> None:
 
         text_enc, projector = load_stage2_ckpt(ckpt_path, device, is_stage1enc)
 
+        routing_log: dict[int, str] = {}
         prefix_fn = make_steered_prefix_fn(
-            text_enc, projector, user_queries, user_memories, device, seed=args.seed
+            text_enc, projector, user_queries, user_memories, device, seed=args.seed,
+            routing_log=routing_log,
         )
 
         metrics, ranks_steered = evaluate_full_with_ranks(
@@ -243,11 +398,44 @@ def main() -> None:
             sign_n = "+" if dn >= 0 else ""
             print(f"    @{k:2d}: Recall={sign_r}{dr:.4f}  NDCG={sign_n}{dn:.4f}")
 
-        # Per-user rank delta distribution
+        # Recovery@N: correct vs wrong routing groups
+        if routing_log and user_first_mid:
+            compute_recovery_at_n(ranks_steered, routing_log, user_first_mid, [5, 10, 20], tag)
+
+        # ── X-target eval (Headline-1: causal-closed) ────────────────────────
+        print(f"\n  [X-target eval] target = source_item_id (causal-closed)")
+        x_metrics_steered, x_ranks_steered = evaluate_x_target(
+            model, dataset, eval_args, prefix_fn, user_source_ids, max_users=args.max_users,
+        )
+        x_metrics_vanilla, x_ranks_vanilla = evaluate_x_target(
+            model, dataset, eval_args, None, user_source_ids, max_users=args.max_users,
+        )
+        for k in [5, 10, 20]:
+            rs = x_metrics_steered.get(f"Recall@{k}", 0)
+            rv = x_metrics_vanilla.get(f"Recall@{k}", 0)
+            dr = rs - rv
+            sign = "+" if dr >= 0 else ""
+            print(f"    @{k:2d}: steered={rs:.4f}  vanilla={rv:.4f}  delta={sign}{dr:.4f}")
+        # SE_ratio for X-target
+        common_x = sorted(set(x_ranks_vanilla) & set(x_ranks_steered))
+        if common_x:
+            x_deltas = [x_ranks_vanilla[u] - x_ranks_steered[u] for u in common_x]
+            imp = sum(1 for d in x_deltas if d > 0)
+            deg = sum(1 for d in x_deltas if d < 0)
+            mean_xd = sum(x_deltas) / len(x_deltas)
+            std_xd = (sum((d - mean_xd)**2 for d in x_deltas) / len(x_deltas)) ** 0.5
+            se_x = std_xd / (len(x_deltas) ** 0.5)
+            ser_x = mean_xd / (se_x + 1e-9)
+            c_pass = "PASS ✓" if ser_x >= 2.0 and mean_xd > 0 else "FAIL ✗"
+            print(f"    n={len(common_x)}  improve={imp}  degrade={deg}")
+            print(f"    mean_delta={mean_xd:+.2f}  SE={se_x:.2f}  SE_ratio={ser_x:+.2f}  [C criterion: {c_pass}]")
+        results[f"{tag}-Xtgt"] = x_metrics_steered
+
+        # Per-user rank delta distribution (W-target, secondary reference)
+        print(f"\n  Per-user rank delta W-target (LOO, secondary reference):")
         common_users = sorted(set(ranks_vanilla) & set(ranks_steered))
         if common_users:
             deltas = [ranks_vanilla[u] - ranks_steered[u] for u in common_users]
-            # positive delta = rank improved (lower rank = better)
             improve = sum(1 for d in deltas if d > 0)
             degrade = sum(1 for d in deltas if d < 0)
             same    = sum(1 for d in deltas if d == 0)
@@ -255,10 +443,8 @@ def main() -> None:
             std_delta  = (sum((d - mean_delta)**2 for d in deltas) / len(deltas)) ** 0.5
             se = std_delta / (len(deltas) ** 0.5)
             se_ratio = mean_delta / (se + 1e-9)
-            c_pass = "PASS ✓" if se_ratio >= 2.0 and mean_delta > 0 else "FAIL ✗"
-            print(f"\n  Per-user rank delta (vanilla_rank - steered_rank, positive=better):")
             print(f"    n={len(common_users)}  improve={improve}  degrade={degrade}  same={same}")
-            print(f"    mean_delta={mean_delta:+.2f}  std={std_delta:.2f}  SE={se:.2f}  SE_ratio={se_ratio:+.2f}  [C criterion: {c_pass}]")
+            print(f"    mean_delta={mean_delta:+.2f}  std={std_delta:.2f}  SE={se:.2f}  SE_ratio={se_ratio:+.2f}")
 
     # ── Summary ──────────────────────────────────────────────────────────────
     print(f"\n{'='*60}")

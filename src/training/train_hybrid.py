@@ -280,8 +280,15 @@ def train_step(
     alpha: float,
     device: str,
     use_contrastive: bool = False,
+    source_item_ids_np: np.ndarray | None = None,  # [B] — target X for L_align + BPR last pos
 ) -> dict:
-    """Single Stage2 training step. Returns {L, L_retrieval, L_align, grad_norm}."""
+    """Single Stage2 training step. Returns {L, L_retrieval, L_align, grad_norm}.
+
+    source_item_ids_np: item X that each query was written about (from align_pairs).
+    When provided, both L_align and BPR last-position target use X instead of W (LOO).
+    This closes the causal loop: query_about_X → memory_containing_X → X.
+    When None (smoke / legacy), falls back to pos_np[:, -1] (LOO W).
+    """
     optimizer.zero_grad()
 
     # On-the-fly encode (§7 #11) — text_encoder is in training mode
@@ -295,29 +302,39 @@ def train_step(
         h_wrong = text_encoder.encode(wrong_memory_texts, is_query=False)  # [B, d_text]
         prefix_wrong = projector(h_query, h_wrong)  # [B, 1, d_sasrec]
 
+    # Resolve align target: X (causal) or W (LOO fallback for smoke/legacy)
+    if source_item_ids_np is not None:
+        align_target = torch.LongTensor(source_item_ids_np).to(device)  # [B]
+    else:
+        align_target = torch.LongTensor(pos_np[:, -1]).to(device)       # [B] fallback
+
+    # BPR pos: replace last position with X so L_retrieval and L_align share the same target
+    if source_item_ids_np is not None:
+        pos_np_x = pos_np.copy()
+        pos_np_x[:, -1] = source_item_ids_np
+    else:
+        pos_np_x = pos_np
+
     # Frozen SASRec forward
     B = seq_np.shape[0]
     uid_dummy = np.zeros(B, dtype=np.int32)
     pos_logits, neg_logits = model(
-        uid_dummy, seq_np, pos_np, neg_np,
+        uid_dummy, seq_np, pos_np_x, neg_np,
         prefix_embeds=prefix_embeds,
     )
 
-    # L_retrieval: BPR
-    pos_t = torch.LongTensor(pos_np).to(device)
-    neg_t = torch.LongTensor(neg_np).to(device)
+    # L_retrieval: BPR (last pos = X when source_item_ids_np provided)
     l_retrieval = bpr_loss(pos_logits, neg_logits)
 
-    # L_align: cosine distance between prefix and last positive item
-    last_pos = torch.LongTensor(pos_np[:, -1]).to(device)  # [B]
-    l_align = align_loss(prefix_embeds, model.item_emb, last_pos)
+    # L_align: cosine distance between prefix and target X in SASRec space
+    l_align = align_loss(prefix_embeds, model.item_emb, align_target)
 
     # SPEC loss: L = L_retrieval + α·L_align
     loss = l_retrieval + alpha * l_align
     metrics_extra: dict = {}
     if use_contrastive:
         # Ablation: correct prefix closer to target than wrong prefix (margin=0.1)
-        target_vec = model.item_emb(last_pos).detach()  # [B, d_sasrec]
+        target_vec = model.item_emb(align_target).detach()  # [B, d_sasrec]
         sim_correct = F.cosine_similarity(prefix_embeds[:, 0, :], target_vec)  # [B]
         sim_wrong   = F.cosine_similarity(prefix_wrong[:, 0, :],  target_vec)  # [B]
         l_contrastive = F.relu(0.1 - sim_correct + sim_wrong).mean()
@@ -556,13 +573,17 @@ def _load_bank_full(bank_jsonl: str) -> dict[str, list[dict]]:
 def _load_pseudo_queries(
     pairs_jsonl: str,
     mid_to_uid: dict[str, str] | None = None,
-) -> dict[str, list[str]]:
-    """Load align_pairs.jsonl → {uid_str: [query_text, ...]}
+) -> tuple[dict[str, list[str]], dict[str, list[int]]]:
+    """Load align_pairs.jsonl → ({uid_str: [query_text, ...]}, {uid_str: [source_item_id, ...]})
+
+    The two dicts are parallel: user_source_ids[uid][i] is the source_item_id (X) for
+    user_queries[uid][i].  X is the item the query was written about — the L_align target.
 
     align_pairs rows may omit user_id (only positive_memory_id present).
     Pass mid_to_uid (built from the bank) to resolve uid from positive_memory_id.
     """
     user_queries: dict[str, list[str]] = {}
+    user_source_ids: dict[str, list[int]] = {}
     with open(pairs_jsonl, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -573,9 +594,11 @@ def _load_pseudo_queries(
             if not uid and mid_to_uid:
                 uid = mid_to_uid.get(rec.get("positive_memory_id", ""), "")
             q = rec.get("query", "")
-            if uid and q:
+            x = rec.get("source_item_id")
+            if uid and q and x is not None:
                 user_queries.setdefault(uid, []).append(q)
-    return user_queries
+                user_source_ids.setdefault(uid, []).append(int(x))
+    return user_queries, user_source_ids
 
 
 def _route_batch(
@@ -585,15 +608,17 @@ def _route_batch(
     text_enc: TextEncoder,
     rng: random.Random,
     query_seed_offset: int = 0,
-) -> tuple[list[str], list[str], list[str], list[int]]:
+    user_source_ids: dict | None = None,
+) -> tuple[list[str], list[str], list[str], list[int], list[int]]:
     """Route each uid to its top-1 memory via cosine sim.
 
     Caller is responsible for no_grad + eval mode.
-    Returns (query_texts, correct_mem_texts, wrong_mem_texts, valid_idx).
+    Returns (query_texts, correct_mem_texts, wrong_mem_texts, valid_idx, source_item_ids).
     valid_idx: positions in uid_arr that were successfully routed.
     wrong_mem_texts: cyclic-shifted correct_mem_texts for ablation/L_align.
+    source_item_ids: X (source item of each query), or 0 if not available.
     """
-    infos: list[tuple[int, str, list[str]]] = []
+    infos: list[tuple[int, str, list[str], int]] = []
     for i, uid in enumerate(uid_arr):
         uid_s = str(int(uid))
         queries = user_queries.get(uid_s)
@@ -601,16 +626,18 @@ def _route_batch(
         if not queries or not mems:
             continue
         q_idx = (rng.randint(0, len(queries) - 1) + query_seed_offset) % len(queries)
-        infos.append((i, queries[q_idx], [m["text"] for m in mems]))
+        src_ids = user_source_ids.get(uid_s) if user_source_ids else None
+        x = int(src_ids[q_idx]) if src_ids and q_idx < len(src_ids) else 0
+        infos.append((i, queries[q_idx], [m["text"] for m in mems], x))
 
     if not infos:
-        return [], [], [], []
+        return [], [], [], [], []
 
     # Batch-encode all queries at once to avoid per-user round trips
     h_queries = text_enc.encode([info[1] for info in infos], is_query=True)  # [n, d]
 
-    selected_queries, selected_mems, valid_idx = [], [], []
-    for j, (orig_i, q_text, mem_texts) in enumerate(infos):
+    selected_queries, selected_mems, valid_idx, selected_xs = [], [], [], []
+    for j, (orig_i, q_text, mem_texts, x) in enumerate(infos):
         if len(mem_texts) == 1:
             best_mem = mem_texts[0]
         else:
@@ -620,10 +647,11 @@ def _route_batch(
         selected_queries.append(q_text)
         selected_mems.append(best_mem)
         valid_idx.append(orig_i)
+        selected_xs.append(x)
 
     n = len(selected_queries)
     wrong_mems = [selected_mems[(j + 1) % n] for j in range(n)]
-    return selected_queries, selected_mems, wrong_mems, valid_idx
+    return selected_queries, selected_mems, wrong_mems, valid_idx, selected_xs
 
 
 @torch.no_grad()
@@ -754,7 +782,7 @@ def _eval_val_loss(
         pos_np = np.stack(poss)
         neg_np = np.stack(negs)
 
-        q_texts, m_texts, _, valid_idx = _route_batch(
+        q_texts, m_texts, _, valid_idx, _ = _route_batch(
             uid_np, user_queries, user_memories, text_enc, rng
         )
         if not valid_idx:
@@ -1042,7 +1070,7 @@ def run_training(args: SimpleNamespace) -> None:
         for m in mems
     }
     print(f"[data] queries: {pairs_jsonl}")
-    user_queries = _load_pseudo_queries(pairs_jsonl, mid_to_uid=mid_to_uid)
+    user_queries, user_source_ids = _load_pseudo_queries(pairs_jsonl, mid_to_uid=mid_to_uid)
     print(f"[data] {len(user_queries)} users with pseudo-queries")
 
     # Pre-training routing accuracy check (confirms ~0.94 for STEP2b, ~0.96 for STEP2a)
@@ -1096,8 +1124,9 @@ def run_training(args: SimpleNamespace) -> None:
             # Routing: eval + no_grad → top-1 memory selection per user
             text_enc.eval()
             with torch.no_grad():
-                q_texts, m_texts, w_texts, valid_idx = _route_batch(
-                    uid_arr, user_queries, user_memories, text_enc, rng
+                q_texts, m_texts, w_texts, valid_idx, src_ids = _route_batch(
+                    uid_arr, user_queries, user_memories, text_enc, rng,
+                    user_source_ids=user_source_ids,
                 )
             text_enc.train()
 
@@ -1109,6 +1138,7 @@ def run_training(args: SimpleNamespace) -> None:
             seq_np = seq_np[valid_idx]
             pos_np = pos_np[valid_idx]
             neg_np = neg_np[valid_idx]
+            src_ids_np = np.array(src_ids, dtype=np.int32)
 
             metrics = train_step(
                 model=model,
@@ -1124,6 +1154,7 @@ def run_training(args: SimpleNamespace) -> None:
                 alpha=alpha,
                 device=device,
                 use_contrastive=args.use_contrastive,
+                source_item_ids_np=src_ids_np,
             )
 
             epoch_l_ret += metrics["L_retrieval"]

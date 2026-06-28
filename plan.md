@@ -1,4 +1,4 @@
-# QAIM-Rec: Intent-Memory-Steered SASRec — 설계 문서 (plan.md, 현재 확정 상태 · v0.4.17)
+# QAIM-Rec: Intent-Memory-Steered SASRec — 설계 문서 (plan.md, 현재 확정 상태 · v0.4.19)
 
 > 이 파일은 **현재 확정된 설계·구조·실행 계획**만 담는다. override 없이 그대로 읽으면 된다. **변경 이력·기각된 대안·버전별 사유는 `decisions.md`** 참조.
 > 핵심 불변항: projector=`MLP(h_query,h_memory)` / 선택(selection)이지 fusion 아님 / 추론 시 온라인 LLM 0회 / 단일 global splits.json / leave-one-out / learnable `[DEFAULT_INTENT]`(진짜 cold) / 백본=전체 상호작용 5-core(rating 무관) / 메모리 eligibility=rating≥4 ∧ ≥10단어 ∧ is_discriminative(백본과 분리된 knob).
@@ -24,13 +24,14 @@
 - **현재 측정(올바른 평가, 폭주 아닌 invisible 학습 ckpt)**: steered≈vanilla(R@10 0.048), per-user rank delta mean +1.97~+2.65이나 std 163/125로 **통계 유의 안 됨**(상쇄, improve≈degrade). = "강하게 흔들되 방향 랜덤" — 0.44% 학습의 예상 결과. 2b(raw-bge)≥2a(stage1)이나 *둘 다 버그 하 학습*이라 B 판정 불가.
 - **표준 측정 규율**: steered 평가는 Recall delta 평균뿐 아니라 **improve/degrade/same 분포 + rank delta std/SE**를 항상 보고(평균만으론 "상쇄"와 "무효과" 구분 불가). prefix 들어가는 모든 측정은 단일 함수 경유(버그2 교훈).
 
-**설계 재정합 (v0.4.17) — 구현버그 제거 후 드러난 2대 설계 문제 확정·재설계**:
-- 7회 구현버그(frozen/스케일/평가/leakage 검사 등) 제거 후, *순수 설계* 문제 2개가 진단으로 확정됨. 방법 정체성 명확화: **학습=A(인과 닫기), 추론="다음 추천 steering"**(다른 층위, 충돌 없음).
-- **★문제1 (L_align 타겟 틀림)**: 현재 prefix를 LOO 미래 item W로 미는데 **W ∈ any memory = 0.0%**(구조적 — W는 미래라 메모리에 없음). → L_align이 *틀린 방향* 학습. **선택지 A 채택: L_align 타겟 = 쿼리 출처 item X**(query_about_X→cluster_X→X, 인과 닫힘). 추론 시엔 이 학습된 능력으로 다음 추천 steering.
-- **★문제2 (Stage1 무효)**: Stage1 vs frozen-bge routing K≥2 delta -0.0003(개선 0), K≥5 -0.018(나쁨). routing 0.958은 K=1(trivial) 포함 과대평가. 원인 = hard-neg 91.6% cross-user(쉬움). → **hard-neg intra-user 1순위 재설계**(K≥2: 같은 유저 다른 클러스터 primary). 그래야 B(Stage1 alignment) 부활 가능.
-- **재설계 순서**: align_pairs 재생성(타겟 X + intra-user hard-neg) → Stage1 재학습 → Stage2 재학습 → 평가. **메모리 뱅크·splits·F6a SASRec 불변**(재생성=align_pairs/학습만).
-- **평가 정합**: 헤드라인 = recovery@N(correct vs wrong, circularity-robust) + X-타겟 정합 steered vs vanilla(A 직접 검증). LOO 미래 item 평가는 부차(W=0% 미정렬, 약한 하한).
-- **contribution**: B(Stage1)는 intra-user 재학습으로 K≥2 delta>0 입증해야 생존, 못하면 C 단독. A(recovery)는 대표분석.
+**★첫 작동 증명 (v0.4.18) — 7회 디버깅 종료, 방법 작동 데이터로 확인**:
+- 재설계(타겟 X + intra-user hard-neg) 후 *인과 닫힌* 평가에서 처음으로 "방법 작동" 증명. 평가 측정버그 3개(stale ckpt/recovery routing 1.0 오판정/X-target eval 부재) 자가수정 후의 신뢰 결과.
+- **★C 성립**: X-target(인과닫힌) steered vs vanilla — 2a R@10 delta +0.0048 **SE_ratio 14.57**, 2b +0.0039 SE 12.98, 둘 다 PASS. "prefix가 쿼리 의도 아이템(X) 방향으로 추천 이동"는 인과 검증. 2a>2b 전 지표. ★단 *메커니즘 작동 상한*(X-target circularity 내재) — circularity-robust 실성능은 recovery@N + 타겟-리뷰 정합쿼리(미생성).
+- **B 전달 초기신호**: recovery@N — 2a routing 0.9531 > 2b 0.9337(전체 견고), correct-wrong gap 2a +0.0288 > 2b +0.0193. Stage1→routing→추천 전달경로 보임. ★단 wrong group 430/608명으로 추천gap 유의성 미확정 = "초기신호".
+- **W-target 음수(통제군 강점)**: X steering 시 W ranking 나빠짐(SE -2.13) = steering이 X 방향 *특이적*("direction-specific, not generic boost").
+- **다음**: (1)타겟-리뷰 정합쿼리 생성(circularity-robust 실성능 측정) → 절대Recall 상한 + recovery 헤드라인, (2)B 추천gap 통계 유의성 보강(wrong sample↑), (3)Stage1 미포화라 epoch↑ 여지 → 이후 F8 전체.
+
+**이전 (v0.4.17) 설계 재정합**: W∈memory=0.0%(LOO 타겟 구조적 미정렬) → 선택지 A 채택(L_align 타겟=쿼리출처 X). Stage1 K≥2 delta≈0(hard-neg 91.6% cross-user) → intra-user 1순위 재설계 → K≥2 delta -0.0003→+0.0260(B 부활). 메모리 뱅크·splits·F6a 불변.
 
 **이전 (v0.4.16) — 전 과정 정적 감사**: E-1(lr_enc default 2e-6, CLI로 1e-5 명시해 직전 학습은 무영향), E-2(SPEC외 L_contrastive, 제거됨), B-1(leakage 검사 ts→item_id 재설계, 뱅크 clean 확정: 개인유닛 leakage 0, prototype-K0 우연충돌 10건은 추론무영향). 학습 버그 전부 수정 후 첫 공정 학습 완료(encoder drift 0.68%, L_contr=0, share 16.7%) — 단 그 위에서 v0.4.17의 설계 문제가 드러남.
 

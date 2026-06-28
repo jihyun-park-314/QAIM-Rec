@@ -8,6 +8,25 @@
 
 ## 변경 이력 (Changelog) — 최신순
 
+> **v0.4.19 (1순위 작업 설계 — 타겟-리뷰 정합쿼리 평가 프로토콜: 목적·함정·검증게이트)** — C(메커니즘)가 X-target SE 14로 증명됐으나 *circularity 상한*. 이를 *circularity-robust 실성능*으로 끌어내리는 핵심 측정의 설계. 7회 측정함정 교훈을 *선제* 반영. **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
+>
+> - **작업 목적 (무엇을 증명하나)**: ① circularity 제거(식별자 가림) 후에도 steering이 작동하나(누설 아닌 진짜 추천), ② 절대성능 상한 = "이상적 쿼리(타깃리뷰)"에서 vanilla 대비 lift, ③ train쿼리(미정렬)↔eval쿼리(정렬) 분포차가 성능에 주는 영향(v0.4.13 "Stage1=gap 축소" 첫 측정). reviewer 첫 질문("X로 X맞추면 누설 아니냐")에 답하는 측정.
+> - **★선제 식별 함정 5 (설계에 박음)**: (1)타깃리뷰→쿼리면 쿼리가 타깃 묘사=누설 → P2 eval 프롬프트가 *식별자(제목/저자/캐릭터) 가리고 의도축(장르/톤/구조)만*, leakage rate 측정 후 평가. (2)타깃 W 리뷰가 메모리에 있으면 라우팅 자명 → W는 미래라 train-history 메모리에 없음 확인(v0.4.17 W∈memory=0%), eval쿼리가 *기존 train-history 메모리*로 라우팅됨을 확인. (3)eval쿼리 생성=새 LLM노이즈 → train과 동일 프롬프트·동일 검증(provenance/leakage). (4)타깃에 리뷰 없는 유저는 eval쿼리 불가 → test타깃 리뷰(≥10단어) 보유 유저 % = eval 모집단 확정. (5)평가경로 어긋남(7회 교훈) → eval쿼리 평가가 X-target/학습과 *동일 prefix 함수* 재사용, 새 경로 금지.
+> - **★검증 게이트 (생성 후)**: eval쿼리 leakage rate(식별자 남은 %, 낮아야), null rate, 모집단 크기(타깃리뷰 보유 %), train쿼리 대비 길이/분포. 라우팅이 train-history 메모리로 가는 비율.
+> - **★핵심 측정 (3층 비교)**: 동일 test 유저·동일 타깃 W에 대해 — (i) vanilla(prefix 없음), (ii) steered+train쿼리(과거 의도, 미정렬=하한), (iii) steered+eval쿼리(타깃 의도, 정렬=상한). Recall@10/20 + SE_ratio + improve/degrade. **(iii)>(i) = circularity-robust 작동(식별자 가렸으니), (iii)>(ii) = 쿼리 정합의 가치(=Stage1이 좁혀야 할 gap의 크기).**
+> - **순서 (생성 전 준비 필수)**: STEP0(모집단·프롬프트·평가경로 준비, LLM 0) → STEP1(eval쿼리 생성, 사용자 LLM 실행) → STEP2(쿼리 품질 검증) → STEP3(3층 평가) → STEP4(해석: C 실성능 확정/B). 생성 전에 모집단 크기·평가코드 준비해 *맹목 생성 방지*.
+> - **결과 위치**: (iii)가 (i) 대비 유의(SE≥2)하고 leakage 낮으면 → C가 "상한"에서 "circularity-robust 실성능"으로 확정 = 논문 헤드라인. (iii)≈(i)면 → X-target SE14는 circularity 덕이었고 실성능은 약함, 재검토. 정직하게 데이터로.
+
+
+> **v0.4.18 (★첫 작동 증명 — C 성립[X-target SE_ratio 14] · B 전달 초기신호 · W-target 음수=방향특이성 통제)** — 재설계(v0.4.17: 타겟 X + intra-user hard-neg) 후 *인과 닫힌* 평가에서 처음으로 "방법 작동"이 데이터로 섬. 7회 디버깅 종료, 진짜 결과 단계 진입. 단 C=상한·B=초기신호로 정확히 위치 유지. **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
+>
+> - **★평가 측정버그 3개 자가수정 (이번 결과 신뢰성의 근거)**: (i) stale 결과(옛 W-target ckpt 11:55 ≠ 새 17:58) 발견·재평가, (ii) recovery routing이 "user의 모든 pos_mid 집합"으로 판정해 *항상 correct=1.0* → "첫 쿼리의 specific mid"로 정정(`_load_user_first_pos_mid`), (iii) Headline1이 여전히 W 타깃 → `evaluate_x_target()` 신작(X를 seen 마스킹에서 제외). **셋 다 안 잡았으면 이번도 가짜. 측정 정직성이 결과 신뢰의 전제.**
+> - **★C 성립 (Headline1, X-target 인과닫힌 평가)**: 2a R@10 delta +0.0048 **SE_ratio +14.57** PASS / 2b +0.0039 SE_ratio +12.98 PASS. SE_ratio 14 = 노이즈 확률 사실상 0(이전 7회의 ±노이즈 SE 1.3과 질적 차이). **"prefix가 X(쿼리 의도 아이템) 방향으로 추천을 이동"는 인과 가설 검증.** 2a>2b 전 지표(delta·SE·improve count). ★위치 정직: 이는 *메커니즘 작동 증명(상한)*이지 실용 추천성능 아님 — X-target은 circularity 내재(쿼리가 X 묘사→X 맞춤). circularity-robust 진짜 헤드라인 = recovery@N + (미생성)타겟-리뷰 정합쿼리. reviewer "X로 X맞추면 당연" 질문에 "상한 + recovery가 robust 헤드라인"으로 방어(v0.4.8).
+> - **B 전달 초기신호 (Headline2, recovery@N)**: 2a routing 0.9531 > 2b 0.9337(+1.9%p, 전체 9171명 견고), correct-wrong R@10 gap 2a +0.0288 > 2b +0.0193. Stage1(intra-user)→routing↑→추천 gap↑ 전달경로 보임. ★단 **wrong group 430/608명으로 작아 추천gap 유의성은 미확정 — "초기신호"지 "확정" 아님**(routing 우위는 견고, 추천 전달의 통계적 유의성은 더 다져야). 4명/10000 노이즈 교훈 유지.
+> - **W-target 음수 = 방향특이성 통제군(강점)**: X로 steering 시 W ranking *나빠짐*(2a SE -2.13). steering이 *아무 방향이나* 올리는 게 아니라 *X 방향 특이적*임을 증명. X↑ ∧ W↓ → "direction-specific, not generic boost" — 논문 강력 통제.
+> - **현재 contribution 위치**: C(query-activated steering 시스템) = 메커니즘 작동 증명됨(상한). B(Stage1 intra-user alignment) = 전달 초기신호(routing 견고, 추천 유의성 미확정). A(recovery@N) = 대표분석. 다음: (1)circularity-robust 실성능 = 타겟-리뷰 정합쿼리 생성(미뤄둔 작업)으로 절대 Recall 상한 + recovery 헤드라인, (2)B 유의성 = wrong sample 키우거나 통계 보강, (3)Stage1 미포화(delta 단조증가)라 epoch↑ 여지.
+
+
 > **v0.4.17 (설계 재정합 — L_align 타겟 W→X[선택지 A] · intra-user hard-neg · 학습/추론 층위 구분)** — 구현 버그(v0.4.15-16) 제거 후 드러난 *설계 정합성* 2대 문제를 진단으로 확정하고 재설계. 방법의 정체성을 명확히: 학습=A(쿼리-의도-아이템 인과 닫기), 추론="다음 추천 steering". **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
 >
 > - **★문제1 확정 — L_align 타겟이 구조적으로 틀림 (W ∈ memory = 0.0%)**: 현재 L_align은 prefix를 LOO 타겟(미래 item W) 방향으로 미는데, 진단 결과 **W ∈ any memory = 0/52,239 = 0.0%, 100% 유저 미커버**. W는 정의상 미래 아이템이라 메모리(train-history에서만 생성)에 *구조적으로* 못 들어감. → L_align이 쿼리·메모리 어디에도 없는 방향을 가르침 = *틀린 신호*. B(LOO 유지) 옹호 근거 0.

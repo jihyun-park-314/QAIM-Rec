@@ -14,3 +14,45 @@
     K=3: n=41  acc=0.9268
     K=4: n=27  acc=0.9259
     K=5: n=20  acc=0.5500
+  step 200/2451  L_align=3.1112  grad=3.063  lr_enc=2.00e-05  lr_head=1.00e-04
+  step 400/2451  L_align=2.7603  grad=2.248  lr_enc=1.96e-05  lr_head=9.81e-05
+  step 600/2451  L_align=2.9008  grad=2.565  lr_enc=1.85e-05  lr_head=9.24e-05
+  step 800/2451  L_align=2.6244  grad=2.522  lr_enc=1.67e-05  lr_head=8.35e-05
+
+Epoch 1/3  avg_loss=2.9415  routing_acc(overall)=0.9460  routing_acc(K≥2)=0.9123  K≥2_delta=+0.0065  frozen_floor=0.9420  time=284s
+    K=1: n=192  acc=1.0000  delta=+0.0000
+    K=2: n=220  acc=0.9318  delta=+0.0000
+    K=3: n=41  acc=0.9756  delta=+0.0488
+    K=4: n=27  acc=0.8889  delta=-0.0370
+    K=5: n=20  acc=0.6000  delta=+0.0500
+  [ckpt] saved best checkpoint → checkpoints/Books/stage1_align_v0417.pt  (loss=2.9415)
+  step 1000/2451  L_align=2.5122  grad=2.411  lr_enc=1.44e-05  lr_head=7.19e-05
+  step 1200/2451  L_align=2.5787  grad=2.256  lr_enc=1.17e-05  lr_head=5.87e-05
+  step 1400/2451  L_align=2.5518  grad=1.860  lr_enc=8.96e-06  lr_head=4.48e-05
+  step 1600/2451  L_align=2.4748  grad=2.200  lr_enc=6.26e-06  lr_head=3.13e-05
+
+Epoch 2/3  avg_loss=2.5774  routing_acc(overall)=0.9540  routing_acc(K≥2)=0.9253  K≥2_delta=+0.0195  frozen_floor=0.9420  time=284s
+    K=1: n=192  acc=1.0000  delta=+0.0000
+    K=2: n=220  acc=0.9455  delta=+0.0136
+    K=3: n=41  acc=0.9756  delta=+0.0488
+    K=4: n=27  acc=0.9630  delta=+0.0370
+    K=5: n=20  acc=0.5500  delta=+0.0000
+  [ckpt] saved best checkpoint → checkpoints/Books/stage1_align_v0417.pt  (loss=2.5774)
+  step 1800/2451  L_align=2.2676  grad=1.994  lr_enc=3.85e-06  lr_head=1.93e-05
+  step 2000/2451  L_align=2.2365  grad=1.976  lr_enc=1.92e-06  lr_head=9.58e-06
+  step 2200/2451  L_align=2.3443  grad=2.164  lr_enc=6.07e-07  lr_head=3.04e-06
+  step 2400/2451  L_align=2.2628  grad=2.040  lr_enc=2.53e-08  lr_head=1.27e-07
+
+Epoch 3/3  avg_loss=2.5095  routing_acc(overall)=0.9580  routing_acc(K≥2)=0.9318  K≥2_delta=+0.0260  frozen_floor=0.9420  time=284s
+    K=1: n=192  acc=1.0000  delta=+0.0000
+    K=2: n=220  acc=0.9500  delta=+0.0182
+    K=3: n=41  acc=0.9756  delta=+0.0488
+    K=4: n=27  acc=0.9630  delta=+0.0370
+    K=5: n=20  acc=0.6000  delta=+0.0500
+  [ckpt] saved best checkpoint → checkpoints/Books/stage1_align_v0417.pt  (loss=2.5095)
+
+Stage1 training complete. Best L_align: 2.5095
+Checkpoint: checkpoints/Books/stage1_align_v0417.pt
+
+[final] routing (overall):  frozen-bge=0.9420  Stage1=0.9580  delta=+0.0160
+[final] routing (K≥2):     frozen-bge=0.9058  Stage1=0.9318  delta=+0.0260  ← headline (contribution B gate)
