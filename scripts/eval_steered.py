@@ -103,6 +103,32 @@ def make_steered_prefix_fn(
     return prefix_fn
 
 
+def _load_eval_queries(
+    eval_queries_jsonl: str,
+) -> tuple[dict[str, list[str]], dict[str, list[int]]]:
+    """Load pseudo_queries_eval.jsonl → ({uid_str: [query_text]}, {uid_str: [target_item]}).
+
+    Eval format (from generate_pseudo_queries.py --mode eval):
+      {user_id, target_item, query_text, failed_reason, ...}
+    Only records with non-null query_text are loaded.
+    """
+    user_queries: dict[str, list[str]] = {}
+    user_source_ids: dict[str, list[int]] = {}
+    with open(eval_queries_jsonl, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            uid = str(rec.get("user_id", ""))
+            q = rec.get("query_text") or ""
+            x = rec.get("target_item")
+            if uid and q and x is not None:
+                user_queries.setdefault(uid, []).append(q)
+                user_source_ids.setdefault(uid, []).append(int(x))
+    return user_queries, user_source_ids
+
+
 def _load_user_first_pos_mid(pairs_jsonl: str, mid_to_uid: dict) -> dict[str, str]:
     """Load {uid_str: positive_memory_id} for each user's *first* query.
 
@@ -307,6 +333,8 @@ def main() -> None:
     parser.add_argument("--split", default="test", choices=["test", "val"])
     parser.add_argument("--max_users", type=int, default=10_000)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--eval_queries_jsonl", default=None,
+                        help="pseudo_queries_eval.jsonl for 3-layer comparison (condition iii)")
     args = parser.parse_args()
 
     device = args.device
@@ -347,6 +375,16 @@ def main() -> None:
     user_first_mid = _load_user_first_pos_mid(pairs_jsonl, mid_to_uid)
     print(f"  {len(user_first_mid)} users with first-query positive_memory_id (for recovery@N)")
 
+    # ── Load eval queries (condition iii) if provided ────────────────────────
+    user_queries_eval: dict[str, list[str]] = {}
+    user_source_ids_eval: dict[str, list[int]] = {}
+    if args.eval_queries_jsonl:
+        print(f"[data] Loading eval queries from {args.eval_queries_jsonl} ...")
+        user_queries_eval, user_source_ids_eval = _load_eval_queries(args.eval_queries_jsonl)
+        n_eval_both = sum(1 for u in user_queries_eval if u in user_memories)
+        print(f"  {len(user_queries_eval)} users with eval queries")
+        print(f"  {n_eval_both} users have eval query + memory (steerable, condition iii)")
+
     # ── Vanilla condition ────────────────────────────────────────────────────
     print(f"\n{'='*60}")
     print("Condition: VANILLA (no prefix)")
@@ -361,90 +399,102 @@ def main() -> None:
     results = {"vanilla": metrics_vanilla}
 
     # ── Steered conditions ───────────────────────────────────────────────────
-    for tag, ckpt_path, is_stage1enc in [
+    # Each checkpoint runs up to 2 query sets:
+    #   (ii) train queries  — past intent, misaligned lower bound
+    #   (iii) eval queries  — target intent, aligned upper bound (if --eval_queries_jsonl given)
+    for ckpt_base_tag, ckpt_path, is_stage1enc in [
         ("steered-2a", args.ckpt_2a, True),
         ("steered-2b", args.ckpt_2b, False),
     ]:
         if not Path(ckpt_path).exists():
-            print(f"\n[skip] {tag}: {ckpt_path} not found")
+            print(f"\n[skip] {ckpt_base_tag}: {ckpt_path} not found")
             continue
-
-        print(f"\n{'='*60}")
-        print(f"Condition: {tag.upper()}  ({ckpt_path})")
-        print('='*60)
 
         text_enc, projector = load_stage2_ckpt(ckpt_path, device, is_stage1enc)
 
-        routing_log: dict[int, str] = {}
-        prefix_fn = make_steered_prefix_fn(
-            text_enc, projector, user_queries, user_memories, device, seed=args.seed,
-            routing_log=routing_log,
-        )
+        # Build query set list: always run train; add eval if provided
+        query_sets = [("train", user_queries, user_source_ids)]
+        if user_queries_eval:
+            query_sets.append(("eval", user_queries_eval, user_source_ids_eval))
 
-        metrics, ranks_steered = evaluate_full_with_ranks(
-            model, dataset, eval_args,
-            split=args.split, max_users=args.max_users,
-            prefix_fn=prefix_fn,
-        )
-        print_metrics(metrics, prefix=tag)
-        results[tag] = metrics
+        for qlabel, qs, src_ids in query_sets:
+            tag = f"{ckpt_base_tag}-{qlabel}"
 
-        # Delta vs vanilla
-        print(f"\n  Delta vs vanilla:")
-        for k in [5, 10, 20]:
-            dr = metrics.get(f"Recall@{k}", 0) - metrics_vanilla.get(f"Recall@{k}", 0)
-            dn = metrics.get(f"NDCG@{k}", 0) - metrics_vanilla.get(f"NDCG@{k}", 0)
-            sign_r = "+" if dr >= 0 else ""
-            sign_n = "+" if dn >= 0 else ""
-            print(f"    @{k:2d}: Recall={sign_r}{dr:.4f}  NDCG={sign_n}{dn:.4f}")
+            print(f"\n{'='*60}")
+            print(f"Condition: {tag.upper()}  ({ckpt_path})  query={qlabel}")
+            print('='*60)
 
-        # Recovery@N: correct vs wrong routing groups
-        if routing_log and user_first_mid:
-            compute_recovery_at_n(ranks_steered, routing_log, user_first_mid, [5, 10, 20], tag)
+            routing_log: dict[int, str] = {}
+            prefix_fn = make_steered_prefix_fn(
+                text_enc, projector, qs, user_memories, device, seed=args.seed,
+                routing_log=routing_log,
+            )
 
-        # ── X-target eval (Headline-1: causal-closed) ────────────────────────
-        print(f"\n  [X-target eval] target = source_item_id (causal-closed)")
-        x_metrics_steered, x_ranks_steered = evaluate_x_target(
-            model, dataset, eval_args, prefix_fn, user_source_ids, max_users=args.max_users,
-        )
-        x_metrics_vanilla, x_ranks_vanilla = evaluate_x_target(
-            model, dataset, eval_args, None, user_source_ids, max_users=args.max_users,
-        )
-        for k in [5, 10, 20]:
-            rs = x_metrics_steered.get(f"Recall@{k}", 0)
-            rv = x_metrics_vanilla.get(f"Recall@{k}", 0)
-            dr = rs - rv
-            sign = "+" if dr >= 0 else ""
-            print(f"    @{k:2d}: steered={rs:.4f}  vanilla={rv:.4f}  delta={sign}{dr:.4f}")
-        # SE_ratio for X-target
-        common_x = sorted(set(x_ranks_vanilla) & set(x_ranks_steered))
-        if common_x:
-            x_deltas = [x_ranks_vanilla[u] - x_ranks_steered[u] for u in common_x]
-            imp = sum(1 for d in x_deltas if d > 0)
-            deg = sum(1 for d in x_deltas if d < 0)
-            mean_xd = sum(x_deltas) / len(x_deltas)
-            std_xd = (sum((d - mean_xd)**2 for d in x_deltas) / len(x_deltas)) ** 0.5
-            se_x = std_xd / (len(x_deltas) ** 0.5)
-            ser_x = mean_xd / (se_x + 1e-9)
-            c_pass = "PASS ✓" if ser_x >= 2.0 and mean_xd > 0 else "FAIL ✗"
-            print(f"    n={len(common_x)}  improve={imp}  degrade={deg}")
-            print(f"    mean_delta={mean_xd:+.2f}  SE={se_x:.2f}  SE_ratio={ser_x:+.2f}  [C criterion: {c_pass}]")
-        results[f"{tag}-Xtgt"] = x_metrics_steered
+            metrics, ranks_steered = evaluate_full_with_ranks(
+                model, dataset, eval_args,
+                split=args.split, max_users=args.max_users,
+                prefix_fn=prefix_fn,
+            )
+            print_metrics(metrics, prefix=tag)
+            results[tag] = metrics
 
-        # Per-user rank delta distribution (W-target, secondary reference)
-        print(f"\n  Per-user rank delta W-target (LOO, secondary reference):")
-        common_users = sorted(set(ranks_vanilla) & set(ranks_steered))
-        if common_users:
-            deltas = [ranks_vanilla[u] - ranks_steered[u] for u in common_users]
-            improve = sum(1 for d in deltas if d > 0)
-            degrade = sum(1 for d in deltas if d < 0)
-            same    = sum(1 for d in deltas if d == 0)
-            mean_delta = sum(deltas) / len(deltas)
-            std_delta  = (sum((d - mean_delta)**2 for d in deltas) / len(deltas)) ** 0.5
-            se = std_delta / (len(deltas) ** 0.5)
-            se_ratio = mean_delta / (se + 1e-9)
-            print(f"    n={len(common_users)}  improve={improve}  degrade={degrade}  same={same}")
-            print(f"    mean_delta={mean_delta:+.2f}  std={std_delta:.2f}  SE={se:.2f}  SE_ratio={se_ratio:+.2f}")
+            # Delta vs vanilla
+            print(f"\n  Delta vs vanilla:")
+            for k in [5, 10, 20]:
+                dr = metrics.get(f"Recall@{k}", 0) - metrics_vanilla.get(f"Recall@{k}", 0)
+                dn = metrics.get(f"NDCG@{k}", 0) - metrics_vanilla.get(f"NDCG@{k}", 0)
+                sign_r = "+" if dr >= 0 else ""
+                sign_n = "+" if dn >= 0 else ""
+                print(f"    @{k:2d}: Recall={sign_r}{dr:.4f}  NDCG={sign_n}{dn:.4f}")
+
+            # Recovery@N: only for train queries (positive_memory_id defined)
+            if qlabel == "train" and routing_log and user_first_mid:
+                compute_recovery_at_n(ranks_steered, routing_log, user_first_mid, [5, 10, 20], tag)
+
+            # ── X-target eval (train: causal-closed; eval: W-target intent-aligned) ──
+            x_label = "source_item_id X (causal-closed)" if qlabel == "train" else "target_item W (intent-aligned, circularity-robust)"
+            print(f"\n  [X/W-target eval] target = {x_label}")
+            x_metrics_steered, x_ranks_steered = evaluate_x_target(
+                model, dataset, eval_args, prefix_fn, src_ids, max_users=args.max_users,
+            )
+            x_metrics_vanilla, x_ranks_vanilla = evaluate_x_target(
+                model, dataset, eval_args, None, src_ids, max_users=args.max_users,
+            )
+            for k in [5, 10, 20]:
+                rs = x_metrics_steered.get(f"Recall@{k}", 0)
+                rv = x_metrics_vanilla.get(f"Recall@{k}", 0)
+                dr = rs - rv
+                sign = "+" if dr >= 0 else ""
+                print(f"    @{k:2d}: steered={rs:.4f}  vanilla={rv:.4f}  delta={sign}{dr:.4f}")
+            # SE_ratio
+            common_x = sorted(set(x_ranks_vanilla) & set(x_ranks_steered))
+            if common_x:
+                x_deltas = [x_ranks_vanilla[u] - x_ranks_steered[u] for u in common_x]
+                imp = sum(1 for d in x_deltas if d > 0)
+                deg = sum(1 for d in x_deltas if d < 0)
+                mean_xd = sum(x_deltas) / len(x_deltas)
+                std_xd = (sum((d - mean_xd)**2 for d in x_deltas) / len(x_deltas)) ** 0.5
+                se_x = std_xd / (len(x_deltas) ** 0.5)
+                ser_x = mean_xd / (se_x + 1e-9)
+                c_pass = "PASS ✓" if ser_x >= 2.0 and mean_xd > 0 else "FAIL ✗"
+                print(f"    n={len(common_x)}  improve={imp}  degrade={deg}")
+                print(f"    mean_delta={mean_xd:+.2f}  SE={se_x:.2f}  SE_ratio={ser_x:+.2f}  [C criterion: {c_pass}]")
+            results[f"{tag}-Xtgt"] = x_metrics_steered
+
+            # Per-user rank delta distribution (W-target LOO, secondary reference)
+            print(f"\n  Per-user rank delta W-target (LOO, secondary reference):")
+            common_users = sorted(set(ranks_vanilla) & set(ranks_steered))
+            if common_users:
+                deltas = [ranks_vanilla[u] - ranks_steered[u] for u in common_users]
+                improve = sum(1 for d in deltas if d > 0)
+                degrade = sum(1 for d in deltas if d < 0)
+                same    = sum(1 for d in deltas if d == 0)
+                mean_delta = sum(deltas) / len(deltas)
+                std_delta  = (sum((d - mean_delta)**2 for d in deltas) / len(deltas)) ** 0.5
+                se = std_delta / (len(deltas) ** 0.5)
+                se_ratio = mean_delta / (se + 1e-9)
+                print(f"    n={len(common_users)}  improve={improve}  degrade={degrade}  same={same}")
+                print(f"    mean_delta={mean_delta:+.2f}  std={std_delta:.2f}  SE={se:.2f}  SE_ratio={se_ratio:+.2f}")
 
     # ── Summary ──────────────────────────────────────────────────────────────
     print(f"\n{'='*60}")
