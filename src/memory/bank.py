@@ -5,7 +5,7 @@ Assembly rules (plan.md v0.4.3 §7 #1):
   K_personal == 1: personal only (k_min=1, NO prototype padding)
   K_personal == 0: purchase history centroid → nearest prototype + [DEFAULT_INTENT]
 
-Leakage check: all evidence.timestamps ⊂ user's train-history timestamps.
+Leakage check: all evidence.item_ids ⊂ user's train-history item IDs.
 User set must match splits.json train users.
 """
 
@@ -70,14 +70,14 @@ def _purchase_centroid(
 # ---------------------------------------------------------------------------
 # Leakage check
 
-def _check_evidence_timestamps(
-    evidence_timestamps: list,
-    train_timestamps: set,
+def _check_evidence_item_ids(
+    evidence_item_ids: list,
+    train_items: set,
 ) -> bool:
-    """Return True (no leakage) if all evidence timestamps are in train history."""
-    if not evidence_timestamps:
+    """Return True (no leakage) if all evidence item IDs are in train history."""
+    if not evidence_item_ids:
         return True
-    return all(ts in train_timestamps for ts in evidence_timestamps)
+    return all(iid in train_items for iid in evidence_item_ids)
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ def assemble_user_bank(
     prototypes: list[dict],
     emb_model=None,
     candidates_path: str | Path | None = None,
-    train_timestamps: set | None = None,
+    train_items: set | None = None,
 ) -> dict:
     """Build memory bank entry for one user.
 
@@ -141,10 +141,10 @@ def assemble_user_bank(
 
     # Leakage check
     leakage_ok = True
-    if train_timestamps is not None:
+    if train_items is not None:
         for unit in units:
-            ev_ts = unit.get("evidence", {}).get("timestamps", [])
-            if not _check_evidence_timestamps(ev_ts, train_timestamps):
+            ev_ids = unit.get("evidence", {}).get("item_ids", [])
+            if not _check_evidence_item_ids(ev_ids, train_items):
                 leakage_ok = False
                 break
 
@@ -186,15 +186,14 @@ def assemble_bank(
     """
     # Load train user set from splits if available
     train_user_set: set | None = None
-    train_timestamps_by_user: dict[Any, set] = {}
+    train_items_by_user: dict[Any, set] = {}
     if splits_path and Path(splits_path).exists():
         with open(splits_path, encoding="utf-8") as f:
             splits = json.load(f)
-        # splits.json format: {user_id_str: {"train": [...], "val": ..., "test": ...}}
-        train_user_set = set(splits.keys())
-        for uid_str, split in splits.items():
-            ts_list = [item.get("timestamp") for item in split.get("train", []) if item.get("timestamp")]
-            train_timestamps_by_user[uid_str] = set(ts_list)
+        # splits.json format: {"users": {uid_str: {"train": [int,...], "val": int, "test": int}}, "meta": {...}}
+        train_user_set = set(splits["users"].keys())
+        for uid_str, split in splits["users"].items():
+            train_items_by_user[uid_str] = set(split.get("train", []))
 
     bank: dict[str, dict] = {}
     stats = {"k0": 0, "k1": 0, "k2plus": 0, "prototype_fallback": 0, "default": 0, "leakage_violations": 0}
@@ -204,7 +203,7 @@ def assemble_bank(
         uid_str = str(uid)
 
         personal_units = synth_units_by_user.get(uid, [])
-        train_ts = train_timestamps_by_user.get(uid_str)
+        train_ids = train_items_by_user.get(uid_str)
 
         entry = assemble_user_bank(
             user_data=user_data,
@@ -212,7 +211,7 @@ def assemble_bank(
             prototypes=prototypes,
             emb_model=emb_model,
             candidates_path=candidates_path,
-            train_timestamps=train_ts,
+            train_items=train_ids,
         )
         bank[uid_str] = entry
 

@@ -1,0 +1,64 @@
+
+[model] Loading SASRec from checkpoints/Books/sasrec_pretrain.pt ...
+  users=10566  items=9041  maxlen=50
+
+[data] Loading bank from data/memory/Books/f3_bank.jsonl ...
+  9705 users in bank
+[data] Loading queries from data/processed/Books/align_pairs.jsonl ...
+  9705 users with queries
+  9705 users have both query + memory (steerable)
+
+============================================================
+Condition: VANILLA (no prefix)
+============================================================
+  vanilla @ 5: Recall=0.0304  NDCG=0.0190  MRR=0.0152
+  vanilla @10: Recall=0.0482  NDCG=0.0247  MRR=0.0176
+  vanilla @20: Recall=0.0748  NDCG=0.0314  MRR=0.0194
+
+============================================================
+Condition: STEERED-2A  (checkpoints/Books/stage2_stage1enc_best.pt)
+============================================================
+[stage1] encoder loaded from checkpoints/Books/stage1_align_best.pt  (199 keys)
+  [encoder] loaded from checkpoints/Books/stage2_stage1enc_best.pt
+  [projector] loaded from checkpoints/Books/stage2_stage1enc_best.pt
+  steered-2a @ 5: Recall=0.0302  NDCG=0.0189  MRR=0.0151
+  steered-2a @10: Recall=0.0482  NDCG=0.0247  MRR=0.0175
+  steered-2a @20: Recall=0.0751  NDCG=0.0314  MRR=0.0194
+
+  Delta vs vanilla:
+    @ 5: Recall=-0.0002  NDCG=-0.0001
+    @10: Recall=+0.0000  NDCG=-0.0001
+    @20: Recall=+0.0003  NDCG=+0.0000
+
+  Per-user rank delta (vanilla_rank - steered_rank, positive=better):
+    n=10000  improve=4494  degrade=4176  same=1330
+    mean_delta=+2.59  std=191.64
+
+============================================================
+Condition: STEERED-2B  (checkpoints/Books/rawbge/stage2_rawbge_best.pt)
+============================================================
+  [encoder] loaded from checkpoints/Books/rawbge/stage2_rawbge_best.pt
+  [projector] loaded from checkpoints/Books/rawbge/stage2_rawbge_best.pt
+  steered-2b @ 5: Recall=0.0308  NDCG=0.0191  MRR=0.0153
+  steered-2b @10: Recall=0.0482  NDCG=0.0248  MRR=0.0177
+  steered-2b @20: Recall=0.0755  NDCG=0.0316  MRR=0.0195
+
+  Delta vs vanilla:
+    @ 5: Recall=+0.0004  NDCG=+0.0002
+    @10: Recall=+0.0000  NDCG=+0.0000
+    @20: Recall=+0.0007  NDCG=+0.0002
+
+  Per-user rank delta (vanilla_rank - steered_rank, positive=better):
+    n=10000  improve=4293  degrade=4233  same=1474
+    mean_delta=+0.19  std=147.53
+
+============================================================
+SUMMARY — split=test  (first prefix-injected Recall)
+============================================================
+condition           R@5    R@10    R@20    N@10
+-----------------------------------------------
+  vanilla       0.0304  0.0482  0.0748  0.0247
+  steered-2a    0.0302  0.0482  0.0751  0.0247
+  steered-2b    0.0308  0.0482  0.0755  0.0248
+
+Saved → results/eval_steered/Books_test.json

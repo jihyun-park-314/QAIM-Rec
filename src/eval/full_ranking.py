@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import copy
 import math
+from typing import Callable
 
 import numpy as np
 import torch
@@ -23,6 +24,7 @@ def evaluate_full(
     args,
     split: str = "test",
     max_users: int = 10_000,
+    prefix_fn: Callable[[int, "np.ndarray"], "torch.Tensor | None"] | None = None,
 ) -> dict[str, float]:
     """Full-catalog ranking evaluation.
 
@@ -90,9 +92,10 @@ def evaluate_full(
 
         seq_np = seq[np.newaxis, :]  # [1, maxlen] — keep as ndarray for log2feats
 
-        # Compute user representation
-        log_feats, _ = model.log2feats(seq_np)
-        final_feat = log_feats[0, -1, :]  # [d]
+        # Compute user representation (with optional steering prefix)
+        pfx = prefix_fn(u, seq_np) if prefix_fn is not None else None
+        log_feats, _ = model.log2feats(seq_np, prefix_embeds=pfx)
+        final_feat = log_feats[0, -1, :]  # [d] — last item pos (prefix prepended, so [-1] stays correct)
 
         # Score all items
         scores = all_item_embs.matmul(final_feat)  # [I]
@@ -121,6 +124,97 @@ def evaluate_full(
         return {k: 0.0 for k in accum}
 
     return {k: round(v / n_valid, 6) for k, v in accum.items()}
+
+
+@torch.no_grad()
+def evaluate_full_with_ranks(
+    model,
+    dataset: dict,
+    args,
+    split: str = "test",
+    max_users: int = 10_000,
+    prefix_fn: Callable[[int, "np.ndarray"], "torch.Tensor | None"] | None = None,
+) -> tuple[dict[str, float], dict[int, int]]:
+    """Like evaluate_full but also returns {user_id: rank} for rank-delta analysis."""
+    model.eval()
+    dev = args.device
+
+    user_train = dataset["user_train"]
+    user_valid = dataset["user_valid"]
+    user_test = dataset["user_test"]
+    usernum = dataset["usernum"]
+    itemnum = dataset["itemnum"]
+
+    if split == "test":
+        target_dict = user_test
+        history_extra = user_valid
+    else:
+        target_dict = user_valid
+        history_extra = {}
+
+    all_users = [u for u in range(1, usernum + 1) if user_train.get(u) and target_dict.get(u)]
+    if len(all_users) > max_users:
+        import random
+        rng = random.Random(42)
+        all_users = rng.sample(all_users, max_users)
+
+    all_items = torch.arange(1, itemnum + 1, dtype=torch.long, device=dev)
+    all_item_embs = model.item_emb(all_items)
+
+    accum = {f"{m}@{k}": 0.0 for m in ["Recall", "NDCG", "MRR"] for k in _KS}
+    n_valid = 0
+    user_ranks: dict[int, int] = {}
+
+    for u in all_users:
+        target_items = target_dict[u]
+        if not target_items:
+            continue
+        target = target_items[0]
+
+        seq = np.zeros([args.maxlen], dtype=np.int32)
+        idx = args.maxlen - 1
+        if split == "test" and history_extra.get(u):
+            for extra in reversed(history_extra[u]):
+                seq[idx] = extra
+                idx -= 1
+                if idx == -1:
+                    break
+        for i in reversed(user_train[u]):
+            if idx == -1:
+                break
+            seq[idx] = i
+            idx -= 1
+
+        seq_np = seq[np.newaxis, :]
+        pfx = prefix_fn(u, seq_np) if prefix_fn is not None else None
+        log_feats, _ = model.log2feats(seq_np, prefix_embeds=pfx)
+        final_feat = log_feats[0, -1, :]
+        scores = all_item_embs.matmul(final_feat)
+
+        seen = set(user_train[u])
+        seen.discard(0)
+        if split == "test" and history_extra.get(u):
+            seen.update(history_extra[u])
+        seen_idx = torch.tensor([i - 1 for i in seen if 1 <= i <= itemnum],
+                                dtype=torch.long, device=dev)
+        if len(seen_idx) > 0:
+            scores[seen_idx] = -1e9
+
+        rank_of_target = (scores > scores[target - 1]).sum().item()
+        user_ranks[u] = rank_of_target
+
+        n_valid += 1
+        for k in _KS:
+            if rank_of_target < k:
+                accum[f"Recall@{k}"] += 1.0
+                accum[f"NDCG@{k}"] += 1.0 / math.log2(rank_of_target + 2)
+            accum[f"MRR@{k}"] += 1.0 / (rank_of_target + 1) if rank_of_target < k else 0.0
+
+    if n_valid == 0:
+        return {k: 0.0 for k in accum}, {}
+
+    metrics = {k: round(v / n_valid, 6) for k, v in accum.items()}
+    return metrics, user_ranks
 
 
 def print_metrics(metrics: dict[str, float], prefix: str = "") -> None:
@@ -162,6 +256,7 @@ def evaluate_full_stratified(
     split: str = "test",
     max_users: int = 10_000,
     sequences_jsonl_path: str | None = None,
+    prefix_fn: Callable[[int, "np.ndarray"], "torch.Tensor | None"] | None = None,
 ) -> dict[str, dict[str, float]]:
     """Full-catalog ranking with warm/cold stratification.
 
@@ -229,7 +324,8 @@ def evaluate_full_stratified(
             idx -= 1
 
         seq_np = seq[np.newaxis, :]
-        log_feats, _ = model.log2feats(seq_np)
+        pfx = prefix_fn(u, seq_np) if prefix_fn is not None else None
+        log_feats, _ = model.log2feats(seq_np, prefix_embeds=pfx)
         final_feat = log_feats[0, -1, :]
         scores = all_item_embs.matmul(final_feat)
 

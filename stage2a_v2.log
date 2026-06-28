@@ -1,0 +1,65 @@
+[model] SASRec frozen  maxlen=50  d=256  users=10566  items=9041
+[stage1] encoder loaded from checkpoints/Books/stage1_align_best.pt  (199 keys)
+[model] encoder: STEP2a (stage1 encoder)
+[opt] lr_enc=1.0e-05  lr_proj=1.0e-03  alpha=0.1
+[data] bank:    data/memory/Books/f3_bank.jsonl
+[data] 9705 users in bank
+[data] queries: data/processed/Books/align_pairs.jsonl
+[data] 9705 users with pseudo-queries
+[baseline] pre-training routing accuracy (n=200): 0.9300  (~0.94 expected for raw-BGE, ~0.96 for Stage1)
+[train] 166 steps/epoch  3320 total steps  20 epochs
+[ctrl] 16 users for controllability monitoring
+
+Epoch 1/20  L_ret=0.1798  L_align=0.8961  L_contr=0.0898  val_L_ret=0.3324  routing_cov=0.918
+  Ctrl: J(c,w)=0.8821  J(c,v)=0.7032  J(c,cs2)=0.9127  gap=-0.0306 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=14.0357
+  Encoder drift: 0.235%  (>0.1% = updating; <0.01% = lr too low or frozen)
+  [ckpt] best → checkpoints/Books/stage2_stage1enc_best.pt  (val_loss=0.3324)
+
+Epoch 2/20  L_ret=0.1756  L_align=0.8155  L_contr=0.0811  val_L_ret=0.2833  routing_cov=0.918
+  Ctrl: J(c,w)=0.8625  J(c,v)=0.7294  J(c,cs2)=0.9323  gap=-0.0698 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=17.0753
+  Encoder drift: 0.353%  (>0.1% = updating; <0.01% = lr too low or frozen)
+  [ckpt] best → checkpoints/Books/stage2_stage1enc_best.pt  (val_loss=0.2833)
+
+Epoch 3/20  L_ret=0.1758  L_align=0.7969  L_contr=0.0770  val_L_ret=0.2787  routing_cov=0.920
+  Ctrl: J(c,w)=0.8760  J(c,v)=0.7380  J(c,cs2)=0.9148  gap=-0.0388 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=18.7265
+  Encoder drift: 0.444%  (>0.1% = updating; <0.01% = lr too low or frozen)
+[baseline] pre-training routing accuracy (n=200): 0.9200  (~0.94 expected for raw-BGE, ~0.96 for Stage1)
+  [ckpt] best → checkpoints/Books/stage2_stage1enc_best.pt  (val_loss=0.2787)
+
+Epoch 4/20  L_ret=0.1767  L_align=0.7880  L_contr=0.0759  val_L_ret=0.3017  routing_cov=0.918
+  Ctrl: J(c,w)=0.8128  J(c,v)=0.6894  J(c,cs2)=0.9190  gap=-0.1062 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=19.3428
+  Encoder drift: 0.523%  (>0.1% = updating; <0.01% = lr too low or frozen)
+  [patience] 1/5  best=0.2787
+
+Epoch 5/20  L_ret=0.1732  L_align=0.7840  L_contr=0.0730  val_L_ret=0.3233  routing_cov=0.917
+  Ctrl: J(c,w)=0.8311  J(c,v)=0.6989  J(c,cs2)=0.8822  gap=-0.0511 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=21.2577
+  Encoder drift: 0.589%  (>0.1% = updating; <0.01% = lr too low or frozen)
+  [patience] 2/5  best=0.2787
+
+Epoch 6/20  L_ret=0.1720  L_align=0.7781  L_contr=0.0709  val_L_ret=0.3365  routing_cov=0.920
+  Ctrl: J(c,w)=0.8067  J(c,v)=0.7041  J(c,cs2)=0.9261  gap=-0.1194 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=22.7491
+  Encoder drift: 0.656%  (>0.1% = updating; <0.01% = lr too low or frozen)
+[baseline] pre-training routing accuracy (n=200): 0.9050  (~0.94 expected for raw-BGE, ~0.96 for Stage1)
+  [patience] 3/5  best=0.2787
+
+Epoch 7/20  L_ret=0.1723  L_align=0.7734  L_contr=0.0705  val_L_ret=0.3313  routing_cov=0.919
+  Ctrl: J(c,w)=0.8807  J(c,v)=0.7102  J(c,cs2)=0.9207  gap=-0.0400 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=23.7004
+  Encoder drift: 0.715%  (>0.1% = updating; <0.01% = lr too low or frozen)
+  [patience] 4/5  best=0.2787
+
+Epoch 8/20  L_ret=0.1712  L_align=0.7699  L_contr=0.0687  val_L_ret=0.3543  routing_cov=0.918
+  Ctrl: J(c,w)=0.8120  J(c,v)=0.6891  J(c,cs2)=0.8774  gap=-0.0654 [SIGNAL]
+  Scale: item_norm=1.7561  L_nonpad=9.0  share~10.0%  pfx_raw_norm=22.5684
+  Encoder drift: 0.772%  (>0.1% = updating; <0.01% = lr too low or frozen)
+  [patience] 5/5  best=0.2787
+[early stop] epoch 8  best_val_loss=0.2787
+
+Stage2 training complete.  Best val_L_ret: 0.2787
+Checkpoint: checkpoints/Books/stage2_stage1enc_best.pt

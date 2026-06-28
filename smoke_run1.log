@@ -1,0 +1,122 @@
+[config] device=cuda:0  seed=42  tau=0.07
+         lr_encoder=2e-05  lr_head=0.0001
+         batch_size=64  num_epochs=3
+[bank] loaded 15895 memories across 10566 users
+
+============================================================
+SMOKE GATE — Stage1 InfoNCE
+  tau=0.07  lr_encoder=2e-05  lr_head=0.0001
+  batch_size=64  smoke_steps=100  seed=42
+============================================================
+[dataset] loaded 28 pairs from data/processed/Books/align_pairs_smoke.jsonl
+
+[baseline] computing frozen-bge routing accuracy ...
+  frozen-bge routing accuracy: 0.9643
+  step   1  L_align=3.6881  grad_norm=2.343
+  step   2  L_align=3.5292  grad_norm=2.220
+  step   3  L_align=3.3633  grad_norm=2.480
+  step   4  L_align=3.2071  grad_norm=2.363
+  step   5  L_align=3.0726  grad_norm=2.200
+  step   6  L_align=2.9204  grad_norm=2.123
+  step   7  L_align=2.7970  grad_norm=1.979
+  step   8  L_align=2.6791  grad_norm=1.799
+  step   9  L_align=2.5756  grad_norm=1.713
+  step  10  L_align=2.4737  grad_norm=1.609
+  step  11  L_align=2.3884  grad_norm=1.526
+  step  12  L_align=2.2996  grad_norm=1.453
+  step  13  L_align=2.2182  grad_norm=1.359
+  step  14  L_align=2.1498  grad_norm=1.321
+  step  15  L_align=2.0836  grad_norm=1.195
+  step  16  L_align=2.0239  grad_norm=1.142
+  step  17  L_align=1.9580  grad_norm=1.012
+  step  18  L_align=1.9109  grad_norm=0.919
+  step  19  L_align=1.8627  grad_norm=0.863
+  step  20  L_align=1.8213  grad_norm=0.763
+  step  21  L_align=1.7898  grad_norm=0.712
+  step  22  L_align=1.7528  grad_norm=0.630
+  step  23  L_align=1.7277  grad_norm=0.575
+  step  24  L_align=1.7044  grad_norm=0.530
+  step  25  L_align=1.6818  grad_norm=0.494
+  step  26  L_align=1.6625  grad_norm=0.468
+  step  27  L_align=1.6461  grad_norm=0.410
+  step  28  L_align=1.6321  grad_norm=0.368
+  step  29  L_align=1.6198  grad_norm=0.358
+  step  30  L_align=1.6068  grad_norm=0.328
+  step  31  L_align=1.5989  grad_norm=0.326
+  step  32  L_align=1.5895  grad_norm=0.280
+  step  33  L_align=1.5806  grad_norm=0.262
+  step  34  L_align=1.5743  grad_norm=0.262
+  step  35  L_align=1.5675  grad_norm=0.246
+  step  36  L_align=1.5628  grad_norm=0.231
+  step  37  L_align=1.5581  grad_norm=0.234
+  step  38  L_align=1.5520  grad_norm=0.206
+  step  39  L_align=1.5489  grad_norm=0.195
+  step  40  L_align=1.5447  grad_norm=0.178
+  step  41  L_align=1.5417  grad_norm=0.179
+  step  42  L_align=1.5379  grad_norm=0.162
+  step  43  L_align=1.5353  grad_norm=0.176
+  step  44  L_align=1.5335  grad_norm=0.186
+  step  45  L_align=1.5303  grad_norm=0.154
+  step  46  L_align=1.5289  grad_norm=0.154
+  step  47  L_align=1.5267  grad_norm=0.132
+  step  48  L_align=1.5252  grad_norm=0.131
+  step  49  L_align=1.5243  grad_norm=0.164
+  step  50  L_align=1.5227  grad_norm=0.138
+  step  51  L_align=1.5207  grad_norm=0.125
+  step  52  L_align=1.5196  grad_norm=0.125
+  step  53  L_align=1.5186  grad_norm=0.125
+  step  54  L_align=1.5175  grad_norm=0.115
+  step  55  L_align=1.5167  grad_norm=0.103
+  step  56  L_align=1.5159  grad_norm=0.114
+  step  57  L_align=1.5156  grad_norm=0.128
+  step  58  L_align=1.5145  grad_norm=0.112
+  step  59  L_align=1.5147  grad_norm=0.138
+  step  60  L_align=1.5130  grad_norm=0.094
+  step  61  L_align=1.5128  grad_norm=0.102
+  step  62  L_align=1.5124  grad_norm=0.121
+  step  63  L_align=1.5122  grad_norm=0.133
+  step  64  L_align=1.5115  grad_norm=0.126
+  step  65  L_align=1.5109  grad_norm=0.109
+  step  66  L_align=1.5098  grad_norm=0.092
+  step  67  L_align=1.5102  grad_norm=0.096
+  step  68  L_align=1.5096  grad_norm=0.087
+  step  69  L_align=1.5093  grad_norm=0.111
+  step  70  L_align=1.5094  grad_norm=0.099
+  step  71  L_align=1.5087  grad_norm=0.085
+  step  72  L_align=1.5089  grad_norm=0.127
+  step  73  L_align=1.5083  grad_norm=0.109
+  step  74  L_align=1.5082  grad_norm=0.089
+  step  75  L_align=1.5079  grad_norm=0.116
+  step  76  L_align=1.5076  grad_norm=0.123
+  step  77  L_align=1.5073  grad_norm=0.093
+  step  78  L_align=1.5071  grad_norm=0.089
+  step  79  L_align=1.5067  grad_norm=0.077
+  step  80  L_align=1.5070  grad_norm=0.112
+  step  81  L_align=1.5068  grad_norm=0.102
+  step  82  L_align=1.5064  grad_norm=0.092
+  step  83  L_align=1.5062  grad_norm=0.069
+  step  84  L_align=1.5064  grad_norm=0.082
+  step  85  L_align=1.5059  grad_norm=0.091
+  step  86  L_align=1.5056  grad_norm=0.070
+  step  87  L_align=1.5056  grad_norm=0.084
+  step  88  L_align=1.5061  grad_norm=0.088
+  step  89  L_align=1.5052  grad_norm=0.080
+  step  90  L_align=1.5055  grad_norm=0.101
+  step  91  L_align=1.5048  grad_norm=0.071
+  step  92  L_align=1.5055  grad_norm=0.102
+  step  93  L_align=1.5051  grad_norm=0.084
+  step  94  L_align=1.5045  grad_norm=0.078
+  step  95  L_align=1.5048  grad_norm=0.075
+  step  96  L_align=1.5046  grad_norm=0.076
+  step  97  L_align=1.5046  grad_norm=0.090
+  step  98  L_align=1.5042  grad_norm=0.073
+  step  99  L_align=1.5048  grad_norm=0.090
+  step 100  L_align=1.5045  grad_norm=0.097
+
+[gate] computing routing accuracy after smoke steps ...
+  Stage1 routing accuracy (smoke): 1.0000
+  frozen-bge floor:                0.9643
+GATE PASS (1): L_align descent 3.6881 → 1.5045
+GATE PASS (2): routing 1.0000 ≥ smoke threshold 0.8643 (floor 0.9643 - 0.10)
+
+SMOKE RESULT: PASS

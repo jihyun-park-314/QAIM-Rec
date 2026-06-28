@@ -1,0 +1,37 @@
+[config] device=cuda:0  seed=42  tau=0.07
+         lr_encoder=2e-05  lr_head=0.0001
+         batch_size=64  num_epochs=3
+[bank] loaded 15895 memories across 10566 users
+
+[full training] 52236 pairs  817 steps/epoch  2451 total steps  3 epochs
+[dataset] loaded 52236 pairs from data/processed/Books/align_pairs.jsonl
+
+[baseline] computing frozen-bge routing accuracy on sample ...
+  frozen-bge routing accuracy (n=500): 0.9420
+  step 200/2451  L_align=3.1989  grad=3.124  lr_enc=2.00e-05  lr_head=1.00e-04
+  step 400/2451  L_align=2.8544  grad=2.455  lr_enc=1.96e-05  lr_head=9.81e-05
+  step 600/2451  L_align=2.9584  grad=2.619  lr_enc=1.85e-05  lr_head=9.24e-05
+  step 800/2451  L_align=2.6659  grad=2.463  lr_enc=1.67e-05  lr_head=8.35e-05
+
+Epoch 1/3  avg_loss=3.0082  routing_acc=0.9440  frozen_floor=0.9420  time=283s  steps_this_epoch=817
+  [ckpt] saved best checkpoint → checkpoints/Books/stage1_align_best.pt  (loss=3.0082)
+  step 1000/2451  L_align=2.5758  grad=2.485  lr_enc=1.44e-05  lr_head=7.19e-05
+  step 1200/2451  L_align=2.6653  grad=2.261  lr_enc=1.17e-05  lr_head=5.87e-05
+  step 1400/2451  L_align=2.6234  grad=1.843  lr_enc=8.96e-06  lr_head=4.48e-05
+  step 1600/2451  L_align=2.4874  grad=2.230  lr_enc=6.26e-06  lr_head=3.13e-05
+
+Epoch 2/3  avg_loss=2.6409  routing_acc=0.9540  frozen_floor=0.9420  time=283s  steps_this_epoch=817
+  [ckpt] saved best checkpoint → checkpoints/Books/stage1_align_best.pt  (loss=2.6409)
+  step 1800/2451  L_align=2.3376  grad=2.040  lr_enc=3.85e-06  lr_head=1.93e-05
+  step 2000/2451  L_align=2.2869  grad=1.975  lr_enc=1.92e-06  lr_head=9.58e-06
+  step 2200/2451  L_align=2.3691  grad=2.188  lr_enc=6.07e-07  lr_head=3.04e-06
+  step 2400/2451  L_align=2.3184  grad=2.044  lr_enc=2.53e-08  lr_head=1.27e-07
+
+Epoch 3/3  avg_loss=2.5715  routing_acc=0.9580  frozen_floor=0.9420  time=283s  steps_this_epoch=817
+  [ckpt] saved best checkpoint → checkpoints/Books/stage1_align_best.pt  (loss=2.5715)
+
+Stage1 training complete. Best L_align: 2.5715
+Checkpoint: checkpoints/Books/stage1_align_best.pt
+
+[final] routing: frozen-bge=0.9420  Stage1_train=0.9580
+Next: measure routing on held-out / eval queries (frozen-bge vs Stage1) to prove train↔real gap reduction (plan.md v0.4.13 contribution B).

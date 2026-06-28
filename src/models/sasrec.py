@@ -89,7 +89,20 @@ class SASRec(torch.nn.Module):
         # When None, this entire block is skipped → identical code path to pmixer.
         if prefix_embeds is not None:
             P = prefix_embeds.shape[1]
-            seqs = torch.cat([prefix_embeds.to(self.dev), seqs], dim=1)  # [B, P+L, d]
+            # Align prefix norm to item_emb attention scale.
+            # item_emb tokens have norm ≈ item_emb.weight.norm * √d (≈0.95) after line 80.
+            # projector LayerNorm inflates prefix to norm ≈17 → prefix dominates attention (~97%).
+            # Fix: rescale prefix direction to match the mean item norm of NON-PADDING positions.
+            # Padding positions (log_seqs==0) produce zero vectors → norm=0 → including them
+            # in the mean dilutes item_target_norm by ~10-100x (e.g. 0.95 → 0.0109 for sparse
+            # sequences), making the prefix effectively invisible during training and evaluation.
+            item_norms = seqs.norm(dim=-1).detach()  # [B, L]
+            nonpad_mask = item_norms > 1e-6
+            item_target_norm = item_norms[nonpad_mask].mean() if nonpad_mask.any() else item_norms.mean()
+            prefix_dev = prefix_embeds.to(self.dev)
+            prefix_norm = prefix_dev.norm(dim=-1, keepdim=True).clamp(min=1e-8)
+            prefix_scaled = prefix_dev / prefix_norm * item_target_norm
+            seqs = torch.cat([prefix_scaled, seqs], dim=1)  # [B, P+L, d]
         else:
             P = 0
 
