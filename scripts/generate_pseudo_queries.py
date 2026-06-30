@@ -50,6 +50,7 @@ import json
 import random
 import re
 import sys
+import threading
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -522,8 +523,65 @@ def _build_review_index(reviews_jsonl: str, user2id: dict, item2id: dict) -> dic
     return idx
 
 
+def _eval_worker(
+    client, user_items: list, review_idx: dict, prompt_tmpl: str,
+    counters: dict, lock: threading.Lock, fout, out_lock: threading.Lock,
+    progress_interval: int = 500,
+) -> None:
+    """Process a subset of users with one Ollama client (runs in its own thread)."""
+    for uid_str, entry in user_items:
+        if not isinstance(entry, dict):
+            continue
+        test_item = entry.get("test")
+        if test_item is None:
+            continue
+
+        uid = int(uid_str)
+        pair = review_idx.get(uid, {}).get(test_item)
+
+        if pair is None:
+            reason: str | None = "no_review"
+            query: str | None = None
+        else:
+            review_text, item_title = pair
+            prompt = (prompt_tmpl
+                      .replace("{title}", item_title)
+                      .replace("{review_text}", review_text[:1000]))
+            query, reason = _llm_call(client, prompt)
+
+        record = json.dumps({
+            "user_id": uid, "source": "eval", "memory_id": None,
+            "target_item": test_item, "query_text": query,
+            "src_review_ids": [] if pair is None else [test_item],
+            "masking_passed": pair is not None,
+            "failed_reason": reason,
+        }, ensure_ascii=False)
+
+        with out_lock:
+            fout.write(record + "\n")
+
+        with lock:
+            if pair is None:
+                counters["no_review"] += 1
+            elif reason == "null_query":
+                counters["null"] += 1
+            elif reason == "llm_fail":
+                counters["fail"] += 1
+            else:
+                counters["ok"] += 1
+            counters["total"] += 1
+            total = counters["total"]
+            if total % progress_interval == 0:
+                print(
+                    f"  [eval {total}] ok={counters['ok']} null={counters['null']} "
+                    f"fail={counters['fail']} no_review={counters['no_review']}",
+                    flush=True,
+                )
+
+
 def run_eval(client, splits_json: str, id_maps_json: str, reviews_jsonl: str,
-             prompt_tmpl: str, out_path: Path, max_records: int, dry_run: int) -> None:
+             prompt_tmpl: str, out_path: Path, max_records: int, dry_run: int,
+             client2=None) -> None:
     with open(splits_json) as f:
         splits_data = json.load(f)
     splits = splits_data.get("users", splits_data) if "users" in splits_data else splits_data
@@ -535,13 +593,44 @@ def run_eval(client, splits_json: str, id_maps_json: str, reviews_jsonl: str,
 
     review_idx = _build_review_index(reviews_jsonl, user2id, item2id)
 
-    n_ok = n_null = n_fail = n_no_review = 0
     limit = dry_run if dry_run > 0 else max_records
+    user_items = list(splits.items())[:limit]
+
+    if client2 is not None:
+        # Dual-Ollama: split users across two threads for ~2x throughput.
+        mid = len(user_items) // 2
+        counters: dict = {"ok": 0, "null": 0, "fail": 0, "no_review": 0, "total": 0}
+        lock = threading.Lock()
+        out_lock = threading.Lock()
+        print(f"[p2_eval] dual-Ollama mode: {mid} users on client1, "
+              f"{len(user_items) - mid} users on client2", flush=True)
+        with open(out_path, "w", encoding="utf-8") as fout:
+            t1 = threading.Thread(
+                target=_eval_worker,
+                args=(client, user_items[:mid], review_idx, prompt_tmpl,
+                      counters, lock, fout, out_lock),
+            )
+            t2 = threading.Thread(
+                target=_eval_worker,
+                args=(client2, user_items[mid:], review_idx, prompt_tmpl,
+                      counters, lock, fout, out_lock),
+            )
+            t1.start()
+            t2.start()
+            t1.join()
+            t2.join()
+        total = counters["total"]
+        print(f"[p2_eval] done: total={total} ok={counters['ok']} "
+              f"null={counters['null']} fail={counters['fail']} "
+              f"no_review={counters['no_review']}  "
+              f"pass_rate={counters['ok']/max(total,1):.3f}")
+        return
+
+    # Single-Ollama sequential mode (unchanged)
+    n_ok = n_null = n_fail = n_no_review = 0
 
     with open(out_path, "w", encoding="utf-8") as fout:
-        for uid_str, entry in splits.items():
-            if n_ok + n_null + n_fail + n_no_review >= limit:
-                break
+        for uid_str, entry in user_items:
             if not isinstance(entry, dict):
                 continue
             test_item = entry.get("test")
@@ -638,12 +727,22 @@ def main() -> None:
 
     # Common
     parser.add_argument("--llm_config", type=str, default="configs/llm/p2.yaml")
+    parser.add_argument("--second_ollama_url", type=str, default=None,
+                        help="URL of second Ollama instance (e.g. http://localhost:11435/api/chat) "
+                             "for dual-instance eval parallelism")
 
     cli = parser.parse_args()
 
     from src.llm.client import load_llm_config, LLMClient
+    import copy as _copy
     llm_cfg = load_llm_config(cli.llm_config)
     client = LLMClient(llm_cfg)
+    client2 = None
+    if cli.second_ollama_url:
+        llm_cfg2 = _copy.copy(llm_cfg)
+        llm_cfg2.api_url = cli.second_ollama_url
+        client2 = LLMClient(llm_cfg2)
+        print(f"[p2] second Ollama: {cli.second_ollama_url}")
 
     prompt_tmpl = Path(cli.prompt).read_text(encoding="utf-8")
     print(f"[p2] prompt: {cli.prompt}")
@@ -686,9 +785,12 @@ def main() -> None:
         if cli.dry_run > 0:
             print(f"[p2_eval] *** DRY RUN: {cli.dry_run} records ***")
         run_eval(client, cli.splits_json, cli.id_maps_json, cli.reviews_jsonl,
-                 prompt_tmpl, out_path, cli.max_records, cli.dry_run)
+                 prompt_tmpl, out_path, cli.max_records, cli.dry_run,
+                 client2=client2)
 
     client.close()
+    if client2 is not None:
+        client2.close()
 
 
 if __name__ == "__main__":

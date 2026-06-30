@@ -1,0 +1,88 @@
+
+[model] Loading SASRec from checkpoints/Books/sasrec_pretrain.pt ...
+  users=10566  items=9041
+
+[data] bank=data/memory/Books/f3_bank.jsonl  pairs=data/processed/Books/align_pairs.jsonl
+  bank_users=9705  query_users=9705  first_mid_users=9705
+
+[STEP2+3] Running vanilla eval (top-M items) ...
+
+============================================================
+  Checkpoint: 2a  (checkpoints/Books/stage2_stage1enc_best.pt)
+============================================================
+
+[STEP2+3:2a] Running steered eval ...
+
+──────────────────────────────────────────────────
+  STEP 2 — Boundary Crossing  [2a]
+──────────────────────────────────────────────────
+
+  [STEP2:2a] n=10566
+      K     Cross      Drop   NetCross   Cross_n   Drop_n
+  @  10    0.0019    0.0021    -0.0002        20       22
+  @  20    0.0024    0.0031    -0.0008        25       33
+  @  50    0.0044    0.0050    -0.0007        46       53
+  @ 100    0.0069    0.0054    +0.0015        73       57
+  @ 200    0.0062    0.0076    -0.0013        66       80
+
+──────────────────────────────────────────────────
+  STEP 3 — Candidate Augmentation  [2a]
+──────────────────────────────────────────────────
+
+  [STEP3:2a] n=10566  M=100
+  vanilla Recall@100 = 0.1967
+      b    R@M(aug)      gain   new_slots_avg
+  b=  10      0.1855  -0.0112             0.0
+  b=  20      0.1739  -0.0228             0.1
+  b=  50      0.1356  -0.0610             3.4
+
+──────────────────────────────────────────────────
+  STEP 4 — Projector Memory Sensitivity  [2a]
+──────────────────────────────────────────────────
+
+  [STEP4:2a] n_valid=1000  same_user_neg=459
+  D_p (||pfx_pos - pfx_neg||):  mean=3.7217  std=1.4214  p10=2.0629  p50=3.5395  p90=5.5999
+  *** D_p non-trivial → projector does differentiate memories
+  Δz_y (score_target with m+ vs m-):  mean=+0.0015  std=0.1453  n=1000  pos=500(50%)  neg=500(50%)
+  *** Δz_y>0 → correct memory boosts target score (expected direction)
+
+============================================================
+  Checkpoint: 2b  (checkpoints/Books/stage2_rawbge_best.pt)
+============================================================
+
+[STEP2+3:2b] Running steered eval ...
+
+──────────────────────────────────────────────────
+  STEP 2 — Boundary Crossing  [2b]
+──────────────────────────────────────────────────
+
+  [STEP2:2b] n=10566
+      K     Cross      Drop   NetCross   Cross_n   Drop_n
+  @  10    0.0026    0.0028    -0.0003        27       30
+  @  20    0.0027    0.0028    -0.0002        28       30
+  @  50    0.0043    0.0058    -0.0015        45       61
+  @ 100    0.0080    0.0061    +0.0019        84       64
+  @ 200    0.0065    0.0080    -0.0015        69       85
+
+──────────────────────────────────────────────────
+  STEP 3 — Candidate Augmentation  [2b]
+──────────────────────────────────────────────────
+
+  [STEP3:2b] n=10566  M=100
+  vanilla Recall@100 = 0.1967
+      b    R@M(aug)      gain   new_slots_avg
+  b=  10      0.1855  -0.0112             0.0
+  b=  20      0.1739  -0.0228             0.1
+  b=  50      0.1355  -0.0611             3.6
+
+──────────────────────────────────────────────────
+  STEP 4 — Projector Memory Sensitivity  [2b]
+──────────────────────────────────────────────────
+
+  [STEP4:2b] n_valid=1000  same_user_neg=459
+  D_p (||pfx_pos - pfx_neg||):  mean=4.8061  std=1.9680  p10=2.4692  p50=4.5830  p90=7.5384
+  *** D_p non-trivial → projector does differentiate memories
+  Δz_y (score_target with m+ vs m-):  mean=+0.0074  std=0.2137  n=1000  pos=501(50%)  neg=499(50%)
+  *** Δz_y>0 → correct memory boosts target score (expected direction)
+
+Saved → results/boundary/Books_boundary.json

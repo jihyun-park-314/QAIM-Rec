@@ -1,0 +1,77 @@
+
+[model] Loading SASRec from checkpoints/Books/sasrec_pretrain.pt ...
+  users=10566  items=9041  maxlen=50
+
+[data] Loading bank + pairs ...
+  bank_users=9705  query_users=9705  first_mid_users=9705
+
+============================================================
+  Checkpoint: 2a  (checkpoints/Books/stage2_stage1enc_best.pt)
+============================================================
+
+────────────────────────────────────────────────────────────
+  STEP 1 — prefix→h_last 전달 진단  [2a]  n=2000  intra_neg=2000
+────────────────────────────────────────────────────────────
+  h_none norm (no prefix):  mean=159.1303
+
+  A. rel_change |h(m+)-h(none)| / |h(none)|:
+     mean=0.0784  std=0.0936  p10=0.0172  p50=0.0449  p90=0.1798
+
+  B. h_diff |h(m+)-h(m-)| (raw L2):
+     mean=6.7235  p50=3.7960
+     D_p  |pfx(m+)-pfx(m-)| : mean=3.7700  p50=3.5462
+     attenuation h_diff/D_p  : 1.7834  (OK → 전달됨)
+
+  C. cos(Δh, item_emb_y) — m+ 이동이 target W 방향인가:
+     mean=-0.0009  std=0.1941  p10=-0.2497  p50=+0.0007  p90=+0.2504
+     pos_frac=50.05%  (≈50% → 방향 무작위 = 원인A)
+
+  D. Δz_y = z_y(m+) - z_y(m-):
+     mean=-0.0065  std=0.1691  p10=-0.0860  p50=+0.0001  p90=+0.0816
+     pos_frac=50.05%  (≈50% 무작위)
+
+  ★ 판정: 원인A: h_last는 바뀌나 방향이 무작위 → 목적함수에 score-space 신호 없음
+
+============================================================
+  Checkpoint: 2b  (checkpoints/Books/stage2_rawbge_best.pt)
+============================================================
+
+────────────────────────────────────────────────────────────
+  STEP 1 — prefix→h_last 전달 진단  [2b]  n=2000  intra_neg=2000
+────────────────────────────────────────────────────────────
+  h_none norm (no prefix):  mean=159.1303
+
+  A. rel_change |h(m+)-h(none)| / |h(none)|:
+     mean=0.0841  std=0.0957  p10=0.0178  p50=0.0498  p90=0.1868
+
+  B. h_diff |h(m+)-h(m-)| (raw L2):
+     mean=9.3633  p50=5.5560
+     D_p  |pfx(m+)-pfx(m-)| : mean=4.7558  p50=4.4999
+     attenuation h_diff/D_p  : 1.9688  (OK → 전달됨)
+
+  C. cos(Δh, item_emb_y) — m+ 이동이 target W 방향인가:
+     mean=+0.0015  std=0.1981  p10=-0.2570  p50=-0.0014  p90=+0.2581
+     pos_frac=49.65%  (≈50% → 방향 무작위 = 원인A)
+
+  D. Δz_y = z_y(m+) - z_y(m-):
+     mean=-0.0061  std=0.2328  p10=-0.1282  p50=-0.0002  p90=+0.1274
+     pos_frac=49.65%  (≈50% 무작위)
+
+  ★ 판정: 원인A: h_last는 바뀌나 방향이 무작위 → 목적함수에 score-space 신호 없음
+
+============================================================
+  STEP 2 — L_retrieval BPR 목적함수 신호 분석 (정적)
+============================================================
+  L_retrieval = BPR(pos_logits, neg_logits)
+  - pos_logits[t] = h_t · item_emb(next_item_t)   (t = 모든 train 위치)
+  - neg_logits[t] = h_t · item_emb(random_neg_t)
+  - prefix(m+)를 쓸 때 h_t가 바뀌므로 BPR은 간접적으로 prefix에 신호를 줌.
+  - 단, 신호 방향: "train-history next-item 예측이 잘 되게" — test target W(미래)에 대한
+    직접 신호는 없음 (W ∉ train_history → LOO).
+  - 따라서 L_retrieval이 "m+ prefix → W score ↑" 신호를 주는 경로는 없음.
+  - L_align: cos(prefix[:,0,:], item_emb(X)) — prefix vector를 X 방향으로 밀지만
+    *h_last가 W를 더 높게 score하도록* 직접 가르치지 않음 (prefix space ≠ h_last space).
+  ★ 결론: BPR + L_align 조합에서 "m+ → h_last(m+) 방향이 m- 대비 W에 가깝다"는
+    직접적인 gradient 경로가 없음 → Δz_y≈0 + pos50%의 학습 측면 원인 확정.
+
+Saved → results/prefix_reach/Books_prefix_reach.json

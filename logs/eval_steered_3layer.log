@@ -1,0 +1,146 @@
+
+[model] Loading SASRec from checkpoints/Books/sasrec_pretrain.pt ...
+  users=10566  items=9041  maxlen=50
+
+[data] Loading bank from data/memory/Books/f3_bank.jsonl ...
+  9705 users in bank
+[data] Loading queries from data/processed/Books/align_pairs.jsonl ...
+  9705 users with queries
+  9705 users have both query + memory (steerable)
+  9705 users with first-query positive_memory_id (for recovery@N)
+[data] Loading eval queries from data/processed/Books/pseudo_queries_eval.jsonl ...
+  10549 users with eval queries
+  9695 users have eval query + memory (steerable, condition iii)
+
+============================================================
+Condition: VANILLA (no prefix)
+============================================================
+  vanilla @ 5: Recall=0.0304  NDCG=0.0190  MRR=0.0152
+  vanilla @10: Recall=0.0482  NDCG=0.0247  MRR=0.0176
+  vanilla @20: Recall=0.0748  NDCG=0.0314  MRR=0.0194
+[stage1] encoder loaded from checkpoints/Books/stage1_align_v0417.pt  (199 keys)
+  [encoder] loaded from checkpoints/Books/stage2_stage1enc_best.pt
+  [projector] loaded from checkpoints/Books/stage2_stage1enc_best.pt
+
+============================================================
+Condition: STEERED-2A-TRAIN  (checkpoints/Books/stage2_stage1enc_best.pt)  query=train
+============================================================
+  steered-2a-train @ 5: Recall=0.0304  NDCG=0.0190  MRR=0.0152
+  steered-2a-train @10: Recall=0.0480  NDCG=0.0247  MRR=0.0176
+  steered-2a-train @20: Recall=0.0745  NDCG=0.0313  MRR=0.0194
+
+  Delta vs vanilla:
+    @ 5: Recall=+0.0000  NDCG=+0.0000
+    @10: Recall=-0.0002  NDCG=-0.0001
+    @20: Recall=-0.0003  NDCG=-0.0001
+
+  Recovery@N [steered-2a-train]:
+    routing accuracy = 0.9531  (8741 correct / 9171 routed)
+    Recall@ 5:  correct=0.0302 (n=8741)  wrong=0.0163 (n=430)  gap=+0.0139
+    Recall@10:  correct=0.0474 (n=8741)  wrong=0.0186 (n=430)  gap=+0.0288
+    Recall@20:  correct=0.0736 (n=8741)  wrong=0.0349 (n=430)  gap=+0.0387
+
+  [X/W-target eval] target = source_item_id X (causal-closed)
+    @ 5: steered=0.1166  vanilla=0.1142  delta=+0.0025
+    @10: steered=0.1726  vanilla=0.1677  delta=+0.0048
+    @20: steered=0.2528  vanilla=0.2470  delta=+0.0058
+    n=9705  improve=5162  degrade=2940
+    mean_delta=+13.21  SE=0.91  SE_ratio=+14.57  [C criterion: PASS ✓]
+
+  Per-user rank delta W-target (LOO, secondary reference):
+    n=10000  improve=4120  degrade=4476  same=1404
+    mean_delta=-4.43  std=208.02  SE=2.08  SE_ratio=-2.13
+
+============================================================
+Condition: STEERED-2A-EVAL  (checkpoints/Books/stage2_stage1enc_best.pt)  query=eval
+============================================================
+  steered-2a-eval @ 5: Recall=0.0318  NDCG=0.0197  MRR=0.0157
+  steered-2a-eval @10: Recall=0.0482  NDCG=0.0250  MRR=0.0179
+  steered-2a-eval @20: Recall=0.0760  NDCG=0.0320  MRR=0.0198
+
+  Delta vs vanilla:
+    @ 5: Recall=+0.0014  NDCG=+0.0007
+    @10: Recall=+0.0000  NDCG=+0.0003
+    @20: Recall=+0.0012  NDCG=+0.0006
+
+  [X/W-target eval] target = target_item W (intent-aligned, circularity-robust)
+    @ 5: steered=0.0273  vanilla=0.0277  delta=-0.0004
+    @10: steered=0.0427  vanilla=0.0425  delta=+0.0002
+    @20: steered=0.0646  vanilla=0.0651  delta=-0.0005
+    n=10000  improve=4793  degrade=3876
+    mean_delta=+34.58  SE=2.48  SE_ratio=+13.93  [C criterion: PASS ✓]
+
+  Per-user rank delta W-target (LOO, secondary reference):
+    n=10000  improve=4809  degrade=3761  same=1430
+    mean_delta=+27.92  std=196.71  SE=1.97  SE_ratio=+14.20
+  [encoder] loaded from checkpoints/Books/stage2_rawbge_best.pt
+  [projector] loaded from checkpoints/Books/stage2_rawbge_best.pt
+
+============================================================
+Condition: STEERED-2B-TRAIN  (checkpoints/Books/stage2_rawbge_best.pt)  query=train
+============================================================
+  steered-2b-train @ 5: Recall=0.0311  NDCG=0.0191  MRR=0.0152
+  steered-2b-train @10: Recall=0.0480  NDCG=0.0246  MRR=0.0175
+  steered-2b-train @20: Recall=0.0748  NDCG=0.0313  MRR=0.0193
+
+  Delta vs vanilla:
+    @ 5: Recall=+0.0007  NDCG=+0.0002
+    @10: Recall=-0.0002  NDCG=-0.0001
+    @20: Recall=+0.0000  NDCG=-0.0001
+
+  Recovery@N [steered-2b-train]:
+    routing accuracy = 0.9337  (8563 correct / 9171 routed)
+    Recall@ 5:  correct=0.0312 (n=8563)  wrong=0.0181 (n=608)  gap=+0.0131
+    Recall@10:  correct=0.0473 (n=8563)  wrong=0.0280 (n=608)  gap=+0.0193
+    Recall@20:  correct=0.0737 (n=8563)  wrong=0.0493 (n=608)  gap=+0.0243
+
+  [X/W-target eval] target = source_item_id X (causal-closed)
+    @ 5: steered=0.1178  vanilla=0.1142  delta=+0.0036
+    @10: steered=0.1717  vanilla=0.1677  delta=+0.0039
+    @20: steered=0.2500  vanilla=0.2470  delta=+0.0030
+    n=9705  improve=4981  degrade=3205
+    mean_delta=+12.08  SE=0.93  SE_ratio=+12.98  [C criterion: PASS ✓]
+
+  Per-user rank delta W-target (LOO, secondary reference):
+    n=10000  improve=4150  degrade=4504  same=1346
+    mean_delta=-1.68  std=211.39  SE=2.11  SE_ratio=-0.80
+
+============================================================
+Condition: STEERED-2B-EVAL  (checkpoints/Books/stage2_rawbge_best.pt)  query=eval
+============================================================
+  steered-2b-eval @ 5: Recall=0.0318  NDCG=0.0198  MRR=0.0158
+  steered-2b-eval @10: Recall=0.0484  NDCG=0.0251  MRR=0.0180
+  steered-2b-eval @20: Recall=0.0760  NDCG=0.0321  MRR=0.0199
+
+  Delta vs vanilla:
+    @ 5: Recall=+0.0014  NDCG=+0.0008
+    @10: Recall=+0.0002  NDCG=+0.0004
+    @20: Recall=+0.0012  NDCG=+0.0007
+
+  [X/W-target eval] target = target_item W (intent-aligned, circularity-robust)
+    @ 5: steered=0.0277  vanilla=0.0277  delta=+0.0000
+    @10: steered=0.0436  vanilla=0.0425  delta=+0.0011
+    @20: steered=0.0660  vanilla=0.0651  delta=+0.0009
+    n=10000  improve=4853  degrade=3869
+    mean_delta=+34.86  SE=2.52  SE_ratio=+13.84  [C criterion: PASS ✓]
+
+  Per-user rank delta W-target (LOO, secondary reference):
+    n=10000  improve=4866  degrade=3780  same=1354
+    mean_delta=+27.85  std=196.59  SE=1.97  SE_ratio=+14.17
+
+============================================================
+SUMMARY — split=test  (first prefix-injected Recall)
+============================================================
+condition           R@5    R@10    R@20    N@10
+-----------------------------------------------
+  vanilla       0.0304  0.0482  0.0748  0.0247
+  steered-2a-train 0.0304  0.0480  0.0745  0.0247
+  steered-2a-train-Xtgt 0.1166  0.1726  0.2528  0.0000
+  steered-2a-eval 0.0318  0.0482  0.0760  0.0250
+  steered-2a-eval-Xtgt 0.0273  0.0427  0.0646  0.0000
+  steered-2b-train 0.0311  0.0480  0.0748  0.0246
+  steered-2b-train-Xtgt 0.1178  0.1717  0.2500  0.0000
+  steered-2b-eval 0.0318  0.0484  0.0760  0.0251
+  steered-2b-eval-Xtgt 0.0277  0.0436  0.0660  0.0000
+
+Saved → results/eval_steered/Books_test.json

@@ -1,12 +1,49 @@
 # QAIM-Rec — 결정 기록 (decisions.md)
 
 > 이 파일은 **변경 이력·기각된 대안·각 버전의 결정 사유**를 담는다. *현재 확정 설계*는 `plan.md`를 보라(여기엔 override가 없다).
-> - 아래 **변경 이력(Changelog)** 은 최신(v0.4.14)→과거(v0.3) 순. 각 블록은 "왜 그 결정을 했는가"의 기록이며, 그 결정의 *적용 결과*는 plan.md 본문에 이미 반영돼 있다.
+> - 아래 **변경 이력(Changelog)** 은 최신(v0.4.22)→과거(v0.3) 순. 각 블록은 "왜 그 결정을 했는가"의 기록이며, 그 결정의 *적용 결과*는 plan.md 본문에 이미 반영돼 있다.
 > - 맨 아래 **(구) LLM 프롬프트 초안**은 설계 초기의 초안이다. **실제 운영 프롬프트는 `config/prompts/{dataset}/{domain}/*.txt`에 외부화**돼 있으므로, 이 초안은 역사적 참고용이다.
 
 ---
 
 ## 변경 이력 (Changelog) — 최신순
+
+> **v0.4.22 (L_mem 타깃 정합성 재정의 — main=L_mem_X · Wtrain_all 폐기 · Wtrain_aligned는 ablation · full training 전 X_in_seq gate)** — v0.4.21의 "score-space memory contrast" 처방을 코드 전에 더 좁혔다. 핵심은 단순히 W를 정하는 문제가 아니라 `(q, m+, m-, target)` 네 referent가 같은 의미 사슬을 이루는지 확인하는 것. **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
+>
+> - **STEP1 사전측정 — W_train_all 사망**: K≥2 샘플 2,000개(seed=42)에서 taxonomy를 재정의했다. A=`X==W_train`, B=`X!=W_train`이나 `mid(W_train)==mid(X)`, C=`X!=W_train`이고 다른 cluster, D=`W_train` provenance 없음. 결과 A+B=982(49.1%), C+D=1,018(50.9%). `W_train`-target contrast는 A+B에서 양수(2a +0.018 / 2b +0.029)였으나 C+D에서 음수(2a -0.022 / 2b -0.031). → **`W_train_all`은 절반의 샘플에서 memory 의미와 충돌하는 gradient poison이므로 폐기.**
+>
+> - **중요 정정 — main은 `L_mem_X`**: 원래 clean 학습 정의는 "리뷰 r에서 query q 생성 → r의 item X가 속한 provenance memory를 m+ → 같은 유저 다른 cluster를 m- → m+가 m-보다 X score를 올리게 한다"이다. 따라서 main score-space contrast는 `L_mem_X = softplus(-(z_X(q,m+) - z_X(q,m-)))`, `z_X=item_emb(X)·h_last(seq,prefix(q,m))`. 이는 v0.4.17의 선택지 A(`query_about_X → cluster_containing_X → X`)와 정합된다. 단, X-target은 메커니즘 학습/상한 성격이 있으므로 top-K 실용성 주장과 분리한다.
+>
+> - **`L_mem_Wtrain_aligned`는 2순위 ablation**: 추천 next-item target과 직접 연결하는 보조 실험으로만 둔다. target은 `W_train=user_train[uid][-1]=pos_np[:,-1]`이며, A+B(`W_train==X` 또는 `mid(W_train)==mid(X)`)에서만 계산한다. C/D/K=1은 mask. **`Wtrain_all` 구현·학습 금지.**
+>
+> - **m+ / m- referent 고정**: L_mem의 `m+`는 반드시 `align_pairs.positive_memory_id` 기반 provenance memory다. router top-1 cosine은 inference path/routed_mem으로 유지하되, L_mem positive로 쓰지 않는다. `m-`는 same-user different-cluster memory이며 cross-user fallback 금지. K=1은 intra-user negative가 없으므로 mask하고, L_mem은 사실상 K≥2 목적함수임을 정직하게 보고한다.
+>
+> - **STEP2 구현 smoke — 통과, 그러나 full training 금지 상태 유지**: 보고 기준 `train_hybrid.py`에 `--beta_mem_x`/`--beta_mem_wtrain`(둘 다 default 0.0), `L_mem_X`, `L_mem_Wtrain_aligned`, `smoke_lmem`가 추가되었고 base/x-only/wtrain-only/combined 4모드 smoke는 통과했다. base에서 L_mem 값 0 확인. 단 이 보고는 문서 업데이트 이전 코드 선행 상태였으므로, 본 v0.4.22로 SPEC을 명문화한다.
+>
+> - **남은 blocker — X_in_seq self-reconstruction audit**: `L_mem_X`가 main이 되면서 새로운 감사가 필요해졌다. `X`가 input `seq`에 이미 포함되면 seen-item self-reconstruction이 될 수 있다. full training 전 N≥2,000에서 `X_in_seq` 비율, `X_in_seq=True/False`별 ΔzX, β=0 route/loss backward-compatibility, val/test target 비참조를 코드 줄+로그로 확인한다. 이 gate 통과 전 재학습 금지.
+>
+
+> **v0.4.21 (근본병목 확정 — 원인 A: prefix→score 방향 gradient 부재 · L_mem(score-space contrast) 제안)** — 재포지셔닝 사망 후, prefix→score 전달을 진단해 top-K 0/B 죽음/recovery 실패의 *단일 원인*을 국소화. 구조(B) 아닌 목적함수(A). 다음 = score-space memory contrast 1개 추가(E-2 반면교사 철저). **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
+>
+> - **재포지셔닝(candidate recovery) 사망 — 폐기**: Cross@100 0.0069(73명/10,566), candidate augmentation gain 전부 음수(b=10 -0.0112), new_slots_avg 0(steered top-10이 vanilla top-90에 이미 다 있음=새 후보 회수 못함). v0.4.20의 R@100 +0.0058이 *실질 없음* 확인. → "candidate recovery/long-tail" 프레임 데이터로 안 섬, 폐기.
+> - **★근본병목 확정 (prefix→score 전달 진단, 재학습 0)**: attenuation = h_diff/D_p = 1.44(2a)/1.78(2b) >1 → **prefix가 h_last(scoring position)에 *증폭* 전달**(P=1 맨앞이 causal attention으로 마지막 position에 완전 도달). 구조(원인 B) 문제 아님. **그런데 cos(Δh, item_emb_W) pos_frac = 50.0%(2a)/52.0%(2b), Δz_y pos 50%** = prefix가 h_last를 움직이나 *정답 W 방향과 무상관*(동전던지기). D_p=3.82(prefix는 m+/m- 다름)인데 그 차이가 W score로 *방향성 있게* 전달 안 됨.
+> - **★원인 A 확정 (목적함수에 score-space 방향 신호 부재)**: 현 L=L_retrieval+α·L_align 어디에도 "correct memory가 wrong보다 정답 score를 더 올려라" gradient 경로 없음. (i) L_retrieval(BPR)=train-history next-item, W는 LOO라 train seq에 없어 W score에 gradient 안 닿음. (ii) L_align=prefix를 item X로 미는 *prefix-space cosine*, h_last→W score 정렬 아님. → **top-K 0 + B 죽음 + 방향 50% = 단일 원인(빠진 score-space gradient).** 구조가 멀쩡하니 *손실 항 하나*로 겨냥 가능(대수술 불필요).
+> - **★다음: L_mem (score-space memory contrast) — 외부평가 §3B가 진단으로 정당화**: `L_mem = -log[exp(z_y(q,m+))/(exp(z_y(q,m+))+exp(z_y(q,m-)))]`, `z_y(q,m)=item_emb(W)·h_last(seq, prefix(q,m))`. "같은 query+seq에서 m+가 m-보다 W의 *SASRec score*를 높여라" 직접 학습 = 빠진 gradient 경로 복원. ★L_align과 핵심 차이: embedding cosine 아닌 *SASRec score* 기반.
+> - **★E-2 반면교사 (미문서화 L_contrastive 사고 반복 금지)**: L_mem은 (a) plan/decisions에 *코드 전에* 명문화, (b) β 별도 argparse(--beta_mem default 0), (c) β=0 vs β>0 ablation 필수. + ★W 누설 점검: z_y가 쓰는 W가 LOO라 train seq(pos_seqs[:,:-1])에 없는지 코드 확인(있으면 self-cheating). m-=intra-user 다른 클러스터(cross-user는 너무 쉬움).
+> - **★L_mem 판정 + 정직한 한계**: 학습 후 (1)cos(Δh,W) pos_frac 50%→유의 >50%(방향 잡히나), (2)그래야 Δz_y↑, (3)*그 다음* top-K R@10/NDCG↑. ★단 방향 잡혀도 바닥효과(70.9% rank200+)면 top-K 0 가능 → 그때 vanilla NDCG 0.0247이 Books SASRec 문헌 통상치인지(backbone 약한가) 재검토(새 전문가 의문1, 현재 보류). L_mem 재학습 = 이 프로젝트 분기점.
+
+
+> **v0.4.20 (3층 평가 완결 — C=메커니즘 작동하나 top-K 효과≈0[바닥효과] · B 죽음 · candidate-recovery 재포지셔닝 + 외부평가)** — 정합 eval쿼리 3층 평가로 *방법의 정확한 능력/한계* 확정. "성공"도 "실패"도 아닌 *정직한 위치*: steering은 작동하나 top-K 밖에서. **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
+>
+> - **eval쿼리 생성·품질 OK**: 타겟리뷰→p2_pseudo_query.txt(train과 동일 통일 프롬프트, C4 원문 title만 가림)→eval쿼리. ok 10,549/10,566(0.998), no_review 0. 제목누출 0.45%, W-in-memory 0.06%(전부 prototype·개인화 0). **저자명 7.91%=leakage 아님 4겹 확정**: C4 준수(title만)+LLM누설 0건(리뷰어가 쓴 것 유지)+코드 경로(쿼리는 메모리 경유만, query→item 직접매칭 없음)+데이터 반증(author-mention NDCG 0.0183 < non 0.0268, shortcut이면 높아야 하는데 낮음).
+> - **★3층 평가 (핵심)**: (i)vanilla R@10 0.0482 / (ii)steered+train쿼리(미정렬) ≈vanilla/하락(W-LOO SE -2.13) / (iii)steered+eval쿼리(정렬) R@10 0.0482(**절대 개선≈0**), 단 W-LOO SE_ratio +14.2(rank delta 기반). X-target(인과닫힌) SE 14.57 = 메커니즘 작동 상한(circularity 내재). **결론: 메커니즘은 작동(SE14, 방향 일관)하나 절대 추천성능(top-K Recall) 개선 거의 0.**
+> - **★왜 top-K가 안 오르나 (바닥효과 확정)**: rank bucket 분석 — vanilla rank 0-9 유저(n=508) mean_delta 0, 10-49도 ≈0, **rank 200+ 유저(n=7491=70.9%) mean_delta +38.5**(SE14의 정체). Books density 0.11%/9041 아이템에서 vanilla가 70.9% 정답을 rank 200+에 묻음 → steering이 250→210처럼 *top-K 무관 영역*에서만 이동. R@100 개선은 2a +0.0058/2b +0.0043(R@10의 10-20배). = 효과 실재하나 후보 영역에서.
+> - **★B 죽음 확정**: 전체 2a(stage1)≈2b(rawbge) SE_ratio +0.17(구분 불가), **K≥2서 오히려 2b 우위(SE -1.55)**. Stage1 intra-user 학습이 routing 공간(K≥2 delta +0.026)은 개선했으나 *추천 성능 전달 0*. → **B(Stage1 alignment가 추천 기여) 포기, auxiliary/ablation으로 강등.** routing 개선은 분석으로만.
+> - **NDCG 미구현 발견**: evaluate_x_target()에 NDCG 키 없음(.get 디폴트 0). 버그 아닌 미구현. SE_ratio(rank 기반)는 독립이라 C 판정 유효. → NDCG@K 실제 구현 필요(reviewer 대비).
+> - **★방향: candidate-recovery 재포지셔닝** (외부 전문가 평가와 우리 진단 일치): "top-10 recommender론 약하나 query-conditioned candidate recovery/long-tail로는 살아있음". C=메커니즘+후보회수, B=auxiliary, A=recovery 분석. R@10 헤드라인 폐기.
+> - **외부평가 수용/유보 정리**: [수용] 진단·B강등·NDCG/label/bucket 위생·boundary crossing(Cross/Drop/NetCross@K)·fixed-budget candidate augmentation·projector memory-sensitivity 진단. [유보=측정으로 필요성 입증 후] boundary-aware Stage2 loss·gated prefix·score-space memory contrast — *재설계라 한번에 하나+SPEC외 손실 경계*. [경계] prefix scale sweep = 우리가 3번 데인 스케일 늪, 신중히.
+> - **다음 (전부 기존 ckpt, 재학습 0)**: (1)NDCG 구현+label 분리+rank bucket 고정, (2)Cross/Drop/NetCross@K(재포지셔닝 직접 증거), (3)fixed-budget candidate augmentation(vanilla top-(M-b)+steered-only top-b의 R@100 gain = "so what" 방어), (4)projector memory-sensitivity(|p(q,m+)-p(q,m-)|, Δz_y — B 죽음이 projector가 memory 무시 탓인가). 이 결과로 재포지셔닝이 서는지+재설계 필요한지 확정 후 plan v0.4.21.
+
 
 > **v0.4.19 (1순위 작업 설계 — 타겟-리뷰 정합쿼리 평가 프로토콜: 목적·함정·검증게이트)** — C(메커니즘)가 X-target SE 14로 증명됐으나 *circularity 상한*. 이를 *circularity-robust 실성능*으로 끌어내리는 핵심 측정의 설계. 7회 측정함정 교훈을 *선제* 반영. **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
 >

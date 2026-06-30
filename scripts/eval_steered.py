@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import random
 import sys
 from pathlib import Path
@@ -224,8 +225,9 @@ def evaluate_x_target(
     all_items = torch.arange(1, itemnum + 1, dtype=torch.long, device=dev)
     all_item_embs = model.item_emb(all_items)
 
-    ks = [5, 10, 20]
+    ks = [10, 20, 50, 100]
     accum = {f"Recall@{k}": 0.0 for k in ks}
+    accum.update({f"NDCG@{k}": 0.0 for k in ks})
     n_valid = 0
     user_ranks: dict[int, int] = {}
 
@@ -264,12 +266,30 @@ def evaluate_x_target(
         for k in ks:
             if rank_of_x < k:
                 accum[f"Recall@{k}"] += 1.0
+                accum[f"NDCG@{k}"] += 1.0 / math.log2(rank_of_x + 2)
 
     if n_valid == 0:
         return {k: 0.0 for k in accum}, {}
 
     metrics = {k: round(v / n_valid, 6) for k, v in accum.items()}
     return metrics, user_ranks
+
+
+# ---------------------------------------------------------------------------
+# Rank bucket display helper (STEP 1c)
+
+_RANK_BUCKETS = [(0, 9, "0-9"), (10, 49, "10-49"), (50, 99, "50-99"),
+                 (100, 199, "100-199"), (200, int(1e9), "200+")]
+
+
+def print_rank_buckets(ranks: "dict[int, int]", label: str) -> None:
+    total = len(ranks)
+    if total == 0:
+        return
+    print(f"\n  Rank buckets [{label}] (n={total}):")
+    for lo, hi, name in _RANK_BUCKETS:
+        cnt = sum(1 for r in ranks.values() if lo <= r <= hi)
+        print(f"    {name:>7}: {cnt:5d}  ({100*cnt/total:5.1f}%)")
 
 
 # ---------------------------------------------------------------------------
@@ -451,22 +471,28 @@ def main() -> None:
             if qlabel == "train" and routing_log and user_first_mid:
                 compute_recovery_at_n(ranks_steered, routing_log, user_first_mid, [5, 10, 20], tag)
 
-            # ── X-target eval (train: causal-closed; eval: W-target intent-aligned) ──
-            x_label = "source_item_id X (causal-closed)" if qlabel == "train" else "target_item W (intent-aligned, circularity-robust)"
-            print(f"\n  [X/W-target eval] target = {x_label}")
+            # ── X/W-target eval ──
+            # train query → target = source item X (causal-closed)
+            # eval query  → target = W (intent-aligned, circularity-robust)
+            xtgt_suffix = "Xsrc" if qlabel == "train" else "Wtgt"
+            x_label = "source_item_id X (causal-closed)" if qlabel == "train" else "target_item W (intent-aligned)"
+            print(f"\n  [{xtgt_suffix} eval] target = {x_label}")
             x_metrics_steered, x_ranks_steered = evaluate_x_target(
                 model, dataset, eval_args, prefix_fn, src_ids, max_users=args.max_users,
             )
             x_metrics_vanilla, x_ranks_vanilla = evaluate_x_target(
                 model, dataset, eval_args, None, src_ids, max_users=args.max_users,
             )
-            for k in [5, 10, 20]:
+            for k in [10, 20, 50, 100]:
                 rs = x_metrics_steered.get(f"Recall@{k}", 0)
                 rv = x_metrics_vanilla.get(f"Recall@{k}", 0)
+                ns = x_metrics_steered.get(f"NDCG@{k}", 0)
+                nv = x_metrics_vanilla.get(f"NDCG@{k}", 0)
                 dr = rs - rv
                 sign = "+" if dr >= 0 else ""
-                print(f"    @{k:2d}: steered={rs:.4f}  vanilla={rv:.4f}  delta={sign}{dr:.4f}")
-            # SE_ratio
+                print(f"    @{k:3d}: R={sign}{dr:.4f}(s={rs:.4f}/v={rv:.4f})  "
+                      f"N={ns:.4f}(v={nv:.4f})")
+            # SE_ratio (rank delta)
             common_x = sorted(set(x_ranks_vanilla) & set(x_ranks_steered))
             if common_x:
                 x_deltas = [x_ranks_vanilla[u] - x_ranks_steered[u] for u in common_x]
@@ -478,8 +504,9 @@ def main() -> None:
                 ser_x = mean_xd / (se_x + 1e-9)
                 c_pass = "PASS ✓" if ser_x >= 2.0 and mean_xd > 0 else "FAIL ✗"
                 print(f"    n={len(common_x)}  improve={imp}  degrade={deg}")
-                print(f"    mean_delta={mean_xd:+.2f}  SE={se_x:.2f}  SE_ratio={ser_x:+.2f}  [C criterion: {c_pass}]")
-            results[f"{tag}-Xtgt"] = x_metrics_steered
+                print(f"    mean_delta={mean_xd:+.2f}  SE={se_x:.2f}  SE_ratio={ser_x:+.2f}  [C: {c_pass}]")
+            print_rank_buckets(x_ranks_steered, f"{tag}-{xtgt_suffix} steered")
+            results[f"{tag}-{xtgt_suffix}"] = x_metrics_steered
 
             # Per-user rank delta distribution (W-target LOO, secondary reference)
             print(f"\n  Per-user rank delta W-target (LOO, secondary reference):")
@@ -500,15 +527,17 @@ def main() -> None:
     print(f"\n{'='*60}")
     print(f"SUMMARY — split={args.split}  (first prefix-injected Recall)")
     print('='*60)
-    header = f"{'condition':<15} {'R@5':>7} {'R@10':>7} {'R@20':>7} {'N@10':>7}"
+    header = f"{'condition':<25} {'R@10':>7} {'R@20':>7} {'R@50':>7} {'R@100':>8} {'N@10':>7} {'N@20':>7}"
     print(header)
     print("-" * len(header))
     for cond, m in results.items():
-        print(f"  {cond:<13} "
-              f"{m.get('Recall@5', 0):.4f}  "
+        print(f"  {cond:<23} "
               f"{m.get('Recall@10', 0):.4f}  "
               f"{m.get('Recall@20', 0):.4f}  "
-              f"{m.get('NDCG@10', 0):.4f}")
+              f"{m.get('Recall@50', 0):.4f}  "
+              f"{m.get('Recall@100', 0):.5f}  "
+              f"{m.get('NDCG@10', 0):.4f}  "
+              f"{m.get('NDCG@20', 0):.4f}")
 
     # Save to results/
     out_dir = Path("results/eval_steered")

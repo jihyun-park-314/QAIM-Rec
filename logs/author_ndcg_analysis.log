@@ -1,0 +1,15 @@
+Author-mentioning: 2138/10549 (20.3%)
+SASRec loaded: users=10566  items=9041
+  [encoder] loaded from checkpoints/Books/stage2_rawbge_best.pt
+  [projector] loaded from checkpoints/Books/stage2_rawbge_best.pt
+
+Running stratified eval (2b + eval queries)...
+
+Metric       Author(n=2138) Non-author(n=8428)     Diff
+----------------------------------------------------------
+Recall@5             0.0215             0.0346  -0.0131
+NDCG@5               0.0126             0.0217  -0.0091
+Recall@10            0.0393             0.0505  -0.0112
+NDCG@10              0.0183             0.0268  -0.0085
+Recall@20            0.0669             0.0782  -0.0113
+NDCG@20              0.0252             0.0338  -0.0086

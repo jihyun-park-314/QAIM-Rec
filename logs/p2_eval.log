@@ -1,0 +1,28 @@
+[p2] second Ollama: http://localhost:11435/api/chat
+[p2] prompt: config/prompts/amazon/Books/p2_pseudo_query.txt
+[p2_eval] splits: data/processed/Books/splits.json  output: data/processed/Books/pseudo_queries_eval.jsonl
+[p2_eval] Building review index …
+[p2_eval] Index built: 106735 reviews for 10566 users
+[p2_eval] dual-Ollama mode: 5283 users on client1, 5283 users on client2
+  [eval 500] ok=500 null=0 fail=0 no_review=0
+  [eval 1000] ok=998 null=0 fail=2 no_review=0
+  [eval 1500] ok=1497 null=1 fail=2 no_review=0
+  [eval 2000] ok=1997 null=1 fail=2 no_review=0
+  [eval 2500] ok=2496 null=1 fail=3 no_review=0
+  [eval 3000] ok=2996 null=1 fail=3 no_review=0
+  [eval 3500] ok=3493 null=3 fail=4 no_review=0
+  [eval 4000] ok=3992 null=4 fail=4 no_review=0
+  [eval 4500] ok=4492 null=4 fail=4 no_review=0
+  [eval 5000] ok=4991 null=4 fail=5 no_review=0
+  [eval 5500] ok=5491 null=4 fail=5 no_review=0
+  [eval 6000] ok=5990 null=5 fail=5 no_review=0
+  [eval 6500] ok=6490 null=5 fail=5 no_review=0
+  [eval 7000] ok=6989 null=6 fail=5 no_review=0
+  [eval 7500] ok=7489 null=6 fail=5 no_review=0
+  [eval 8000] ok=7987 null=6 fail=7 no_review=0
+  [eval 8500] ok=8487 null=6 fail=7 no_review=0
+  [eval 9000] ok=8986 null=7 fail=7 no_review=0
+  [eval 9500] ok=9486 null=7 fail=7 no_review=0
+  [eval 10000] ok=9985 null=8 fail=7 no_review=0
+  [eval 10500] ok=10483 null=10 fail=7 no_review=0
+[p2_eval] done: total=10566 ok=10549 null=10 fail=7 no_review=0  pass_rate=0.998

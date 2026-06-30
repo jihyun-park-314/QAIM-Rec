@@ -272,22 +272,38 @@ def train_step(
     projector: IntentProjector,
     optimizer: torch.optim.Optimizer,
     query_texts: list[str],         # [B] query stand-ins
-    memory_texts: list[str],        # [B] memory source texts
-    wrong_memory_texts: list[str],  # [B] swapped memory source texts
+    memory_texts: list[str],        # [B] routed_mem texts (router top-1, NOT prov_pos_mem)
+    wrong_memory_texts: list[str],  # [B] swapped memory texts for L_align ablation
     seq_np: np.ndarray,             # [B, maxlen]
-    pos_np: np.ndarray,             # [B, maxlen]
+    pos_np: np.ndarray,             # [B, maxlen]  ← W_train in last col, captured BEFORE X-replacement
     neg_np: np.ndarray,             # [B, maxlen]
     alpha: float,
     device: str,
     use_contrastive: bool = False,
     source_item_ids_np: np.ndarray | None = None,  # [B] — target X for L_align + BPR last pos
+    beta_mem_x: float = 0.0,
+    beta_mem_wtrain: float = 0.0,
+    prov_pos_texts: list | None = None,       # [B] text of prov_pos_mem (provenance path)
+    intra_neg_texts: list | None = None,      # [B] text of intra_neg_mem (same-user diff-cluster)
+    prov_pos_item_ids: list | None = None,    # [B] set of item_ids in prov_pos_mem
+    lmem_x_mask: list | None = None,         # [B] bool: K≥2 AND prov_pos AND intra_neg valid
+    w_train_ids: np.ndarray | None = None,   # [B] W_train = pos_np[:,-1] pre-X-replacement
 ) -> dict:
-    """Single Stage2 training step. Returns {L, L_retrieval, L_align, grad_norm}.
+    """Single Stage2 training step.
 
-    source_item_ids_np: item X that each query was written about (from align_pairs).
-    When provided, both L_align and BPR last-position target use X instead of W (LOO).
-    This closes the causal loop: query_about_X → memory_containing_X → X.
-    When None (smoke / legacy), falls back to pos_np[:, -1] (LOO W).
+    Returns {L, L_retrieval, L_align, L_mem_X, L_mem_Wtrain, n_valid_x, n_valid_wtrain, grad_norm}.
+
+    source_item_ids_np: item X from align_pairs (causal target). Both L_align and BPR use X.
+    When None (smoke/legacy), falls back to pos_np[:,-1] (LOO W).
+
+    L_mem_X (beta_mem_x > 0): softplus(-(zX_with_m+ - zX_with_m-)).
+      m+ = prov_pos_mem (provenance, NOT routed_mem).
+      m- = intra_neg_mem (same-user diff-cluster).
+      Gradient flows: projector + text_encoder via frozen SASRec computation graph.
+
+    L_mem_Wtrain (beta_mem_wtrain > 0): same structure but target = W_train.
+      Masked to A+B samples (W_train ∈ prov_pos_mem.item_ids OR W_train == X).
+      val/test targets are NEVER included here (pos_np is train split only).
     """
     optimizer.zero_grad()
 
@@ -295,7 +311,7 @@ def train_step(
     h_query = text_encoder.encode(query_texts, is_query=True)    # [B, d_text]
     h_memory = text_encoder.encode(memory_texts, is_query=False)  # [B, d_text]
 
-    # Projector → prefix (correct)
+    # Projector → prefix using routed_mem (L_retrieval + L_align path)
     prefix_embeds = projector(h_query, h_memory)  # [B, 1, d_sasrec]
 
     if use_contrastive:
@@ -315,7 +331,7 @@ def train_step(
     else:
         pos_np_x = pos_np
 
-    # Frozen SASRec forward
+    # Frozen SASRec forward (routed_mem prefix)
     B = seq_np.shape[0]
     uid_dummy = np.zeros(B, dtype=np.int32)
     pos_logits, neg_logits = model(
@@ -340,6 +356,84 @@ def train_step(
         l_contrastive = F.relu(0.1 - sim_correct + sim_wrong).mean()
         loss = loss + alpha * l_contrastive
         metrics_extra["L_contrastive"] = round(l_contrastive.item(), 6)
+
+    # ── L_mem_X — causal memory loss (SPEC v0.4.22) ─────────────────────────
+    l_mem_x = torch.tensor(0.0, device=device)
+    n_valid_x = 0
+    if (beta_mem_x > 0.0 and prov_pos_texts is not None
+            and intra_neg_texts is not None and lmem_x_mask is not None
+            and source_item_ids_np is not None):
+        valid_x_idx = [i for i, v in enumerate(lmem_x_mask) if v]
+        if valid_x_idx:
+            n_valid_x = len(valid_x_idx)
+            # Re-use h_query slice (no re-encode) — grad accumulates with main path
+            vx_t = torch.tensor(valid_x_idx, dtype=torch.long)
+            h_q_v = h_query[vx_t]  # [n_x, d_text]
+            h_pp = text_encoder.encode(
+                [prov_pos_texts[i] for i in valid_x_idx], is_query=False)   # [n_x, d_text]
+            h_in = text_encoder.encode(
+                [intra_neg_texts[i] for i in valid_x_idx], is_query=False)  # [n_x, d_text]
+            pfx_pp = projector(h_q_v, h_pp)  # [n_x, 1, d_sasrec] — prov_pos prefix
+            pfx_in = projector(h_q_v, h_in)  # [n_x, 1, d_sasrec] — intra_neg prefix
+            seq_np_v = seq_np[valid_x_idx]
+            x_targets = torch.LongTensor(source_item_ids_np[valid_x_idx]).to(device)  # [n_x]
+            # Two SASRec forwards with different prefixes (SASRec frozen; grad flows through pfx)
+            log_feats_pp, _ = model.log2feats(seq_np_v, prefix_embeds=pfx_pp)  # [n_x, P+L, d]
+            log_feats_in, _ = model.log2feats(seq_np_v, prefix_embeds=pfx_in)  # [n_x, P+L, d]
+            h_last_pp = log_feats_pp[:, -1, :]  # [n_x, d_sasrec]
+            h_last_in = log_feats_in[:, -1, :]  # [n_x, d_sasrec]
+            x_emb = model.item_emb(x_targets)   # [n_x, d_sasrec] — detached (frozen)
+            zX_pos = (h_last_pp * x_emb).sum(-1)  # [n_x]
+            zX_neg = (h_last_in * x_emb).sum(-1)  # [n_x]
+            l_mem_x = F.softplus(-(zX_pos - zX_neg)).mean()
+            loss = loss + beta_mem_x * l_mem_x
+
+    # ── L_mem_Wtrain_aligned — A+B ablation only (SPEC v0.4.22) ─────────────
+    l_mem_wtrain = torch.tensor(0.0, device=device)
+    n_valid_wtrain = 0
+    if (beta_mem_wtrain > 0.0 and prov_pos_texts is not None
+            and intra_neg_texts is not None and lmem_x_mask is not None
+            and w_train_ids is not None and source_item_ids_np is not None):
+        # A+B mask: lmem_x_mask AND (W_train == X OR W_train ∈ prov_pos_mem.item_ids)
+        valid_wt_idx = []
+        for i, v in enumerate(lmem_x_mask):
+            if not v:
+                continue
+            w = int(w_train_ids[i])
+            x = int(source_item_ids_np[i])
+            item_ids = prov_pos_item_ids[i] if prov_pos_item_ids else None
+            if w == x or (item_ids is not None and w in item_ids):
+                valid_wt_idx.append(i)
+        if valid_wt_idx:
+            n_valid_wtrain = len(valid_wt_idx)
+            vwt_t = torch.tensor(valid_wt_idx, dtype=torch.long)
+            h_q_wt = h_query[vwt_t]  # [n_wt, d_text]
+            # Reuse prov_pos and intra_neg for Wtrain variant (same m+/m- pair)
+            h_pp_wt = text_encoder.encode(
+                [prov_pos_texts[i] for i in valid_wt_idx], is_query=False)   # [n_wt, d_text]
+            h_in_wt = text_encoder.encode(
+                [intra_neg_texts[i] for i in valid_wt_idx], is_query=False)  # [n_wt, d_text]
+            pfx_pp_wt = projector(h_q_wt, h_pp_wt)  # [n_wt, 1, d_sasrec]
+            pfx_in_wt = projector(h_q_wt, h_in_wt)  # [n_wt, 1, d_sasrec]
+            seq_np_wt = seq_np[valid_wt_idx]
+            # w_train_ids uses pre-X-replacement values (train split last col only)
+            wt_targets = torch.LongTensor(w_train_ids[valid_wt_idx]).to(device)  # [n_wt]
+            log_feats_pp_wt, _ = model.log2feats(seq_np_wt, prefix_embeds=pfx_pp_wt)
+            log_feats_in_wt, _ = model.log2feats(seq_np_wt, prefix_embeds=pfx_in_wt)
+            h_last_pp_wt = log_feats_pp_wt[:, -1, :]  # [n_wt, d]
+            h_last_in_wt = log_feats_in_wt[:, -1, :]  # [n_wt, d]
+            wt_emb = model.item_emb(wt_targets)        # [n_wt, d]
+            zW_pos = (h_last_pp_wt * wt_emb).sum(-1)   # [n_wt]
+            zW_neg = (h_last_in_wt * wt_emb).sum(-1)   # [n_wt]
+            l_mem_wtrain = F.softplus(-(zW_pos - zW_neg)).mean()
+            loss = loss + beta_mem_wtrain * l_mem_wtrain
+
+    metrics_extra.update({
+        "L_mem_X": round(l_mem_x.item(), 6),
+        "L_mem_Wtrain": round(l_mem_wtrain.item(), 6),
+        "n_valid_x": n_valid_x,
+        "n_valid_wtrain": n_valid_wtrain,
+    })
 
     loss.backward()
 
@@ -542,10 +636,11 @@ def run_smoke(args: SimpleNamespace) -> None:
 
 
 def _load_bank_full(bank_jsonl: str) -> dict[str, list[dict]]:
-    """Load bank JSONL → {uid_str: [{mid, text}, ...]}
+    """Load bank JSONL → {uid_str: [{mid, text, item_ids}, ...]}
 
     Supports f3_bank format (per-memory, intent_description) and
     memory_full format (per-user, cluster_summaries).
+    item_ids: set of item IDs covered by this memory (from evidence.item_ids).
     """
     user_memories: dict[str, list[dict]] = {}
     with open(bank_jsonl, encoding="utf-8") as f:
@@ -559,31 +654,36 @@ def _load_bank_full(bank_jsonl: str) -> dict[str, list[dict]]:
                 continue
             if "intent_description" in rec:
                 mid = str(rec.get("memory_id", ""))
+                item_ids = set(rec.get("evidence", {}).get("item_ids", []))
                 user_memories.setdefault(uid, []).append(
-                    {"mid": mid, "text": rec["intent_description"]}
+                    {"mid": mid, "text": rec["intent_description"], "item_ids": item_ids}
                 )
             elif "cluster_summaries" in rec:
                 for cs in rec.get("cluster_summaries", []):
                     mid = str(cs.get("cluster_id", ""))
                     for txt in cs.get("source_texts", []):
-                        user_memories.setdefault(uid, []).append({"mid": mid, "text": txt})
+                        user_memories.setdefault(uid, []).append(
+                            {"mid": mid, "text": txt, "item_ids": set()}
+                        )
     return user_memories
 
 
 def _load_pseudo_queries(
     pairs_jsonl: str,
     mid_to_uid: dict[str, str] | None = None,
-) -> tuple[dict[str, list[str]], dict[str, list[int]]]:
-    """Load align_pairs.jsonl → ({uid_str: [query_text, ...]}, {uid_str: [source_item_id, ...]})
+) -> tuple[dict[str, list[str]], dict[str, list[int]], dict[str, list[str]]]:
+    """Load align_pairs.jsonl → (user_queries, user_source_ids, user_pos_mids).
 
-    The two dicts are parallel: user_source_ids[uid][i] is the source_item_id (X) for
-    user_queries[uid][i].  X is the item the query was written about — the L_align target.
+    All three dicts are parallel per user: index i in each list corresponds to the same
+    align_pairs row. user_pos_mids[uid][i] is the positive_memory_id for L_mem provenance
+    (distinct from router top-1 routed_mem — never conflate these two).
 
     align_pairs rows may omit user_id (only positive_memory_id present).
     Pass mid_to_uid (built from the bank) to resolve uid from positive_memory_id.
     """
     user_queries: dict[str, list[str]] = {}
     user_source_ids: dict[str, list[int]] = {}
+    user_pos_mids: dict[str, list[str]] = {}
     with open(pairs_jsonl, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -591,14 +691,16 @@ def _load_pseudo_queries(
                 continue
             rec = json.loads(line)
             uid = str(rec.get("user_id", ""))
+            pos_mid = rec.get("positive_memory_id", "")
             if not uid and mid_to_uid:
-                uid = mid_to_uid.get(rec.get("positive_memory_id", ""), "")
+                uid = mid_to_uid.get(pos_mid, "")
             q = rec.get("query", "")
             x = rec.get("source_item_id")
             if uid and q and x is not None:
                 user_queries.setdefault(uid, []).append(q)
                 user_source_ids.setdefault(uid, []).append(int(x))
-    return user_queries, user_source_ids
+                user_pos_mids.setdefault(uid, []).append(pos_mid)
+    return user_queries, user_source_ids, user_pos_mids
 
 
 def _route_batch(
@@ -609,16 +711,28 @@ def _route_batch(
     rng: random.Random,
     query_seed_offset: int = 0,
     user_source_ids: dict | None = None,
-) -> tuple[list[str], list[str], list[str], list[int], list[int]]:
-    """Route each uid to its top-1 memory via cosine sim.
+    user_pos_mids: dict | None = None,
+) -> tuple[list[str], list[str], list[str], list[int], list[int], dict | None]:
+    """Route each uid to its top-1 memory (routed_mem) via cosine sim.
 
     Caller is responsible for no_grad + eval mode.
-    Returns (query_texts, correct_mem_texts, wrong_mem_texts, valid_idx, source_item_ids).
-    valid_idx: positions in uid_arr that were successfully routed.
-    wrong_mem_texts: cyclic-shifted correct_mem_texts for ablation/L_align.
-    source_item_ids: X (source item of each query), or 0 if not available.
+    Returns (query_texts, routed_mem_texts, wrong_mem_texts, valid_idx, source_item_ids, prov_data).
+    - valid_idx: positions in uid_arr that were successfully routed.
+    - wrong_mem_texts: cyclic-shifted routed_mem_texts for L_align ablation.
+    - source_item_ids: X (source item of each query), or 0 if not available.
+    - prov_data: None when user_pos_mids is None. Otherwise a dict with:
+        prov_pos_texts: list[str|None]     — text of prov_pos_mem (align_pairs provenance)
+        intra_neg_texts: list[str|None]    — text of intra_neg_mem (same-user diff-cluster)
+        prov_pos_item_ids: list[set|None]  — item_ids of prov_pos_mem (for Wtrain A+B check)
+        lmem_x_mask: list[bool]            — K≥2 AND prov_pos found AND intra_neg found
+        pos_mid_list: list[str]            — positive_memory_id per routed sample
+
+    Variable name contract (never conflate):
+      routed_mem   = router top-1 cosine (L_align / L_retrieval path)
+      prov_pos_mem = align_pairs.positive_memory_id (L_mem path)
+      intra_neg_mem = same-user different-cluster random negative
     """
-    infos: list[tuple[int, str, list[str], int]] = []
+    infos: list[tuple[int, str, list[str], int, str]] = []
     for i, uid in enumerate(uid_arr):
         uid_s = str(int(uid))
         queries = user_queries.get(uid_s)
@@ -628,16 +742,26 @@ def _route_batch(
         q_idx = (rng.randint(0, len(queries) - 1) + query_seed_offset) % len(queries)
         src_ids = user_source_ids.get(uid_s) if user_source_ids else None
         x = int(src_ids[q_idx]) if src_ids and q_idx < len(src_ids) else 0
-        infos.append((i, queries[q_idx], [m["text"] for m in mems], x))
+        pos_mid = ""
+        if user_pos_mids:
+            pmids = user_pos_mids.get(uid_s, [])
+            pos_mid = pmids[q_idx] if q_idx < len(pmids) else ""
+        infos.append((i, queries[q_idx], [m["text"] for m in mems], x, pos_mid))
 
     if not infos:
-        return [], [], [], [], []
+        return [], [], [], [], [], None
 
     # Batch-encode all queries at once to avoid per-user round trips
     h_queries = text_enc.encode([info[1] for info in infos], is_query=True)  # [n, d]
 
     selected_queries, selected_mems, valid_idx, selected_xs = [], [], [], []
-    for j, (orig_i, q_text, mem_texts, x) in enumerate(infos):
+    prov_pos_texts: list = []
+    intra_neg_texts: list = []
+    prov_pos_item_ids_list: list = []
+    lmem_x_mask: list[bool] = []
+    pos_mid_list: list[str] = []
+
+    for j, (orig_i, q_text, mem_texts, x, pos_mid) in enumerate(infos):
         if len(mem_texts) == 1:
             best_mem = mem_texts[0]
         else:
@@ -649,9 +773,36 @@ def _route_batch(
         valid_idx.append(orig_i)
         selected_xs.append(x)
 
+        if user_pos_mids is not None:
+            uid_s = str(int(uid_arr[orig_i]))
+            mems_full = user_memories.get(uid_s, [])
+            k_personal = len(mems_full)
+            # prov_pos_mem: lookup by positive_memory_id (NOT router top-1)
+            prov_pos_m = next((m for m in mems_full if m["mid"] == pos_mid), None) if pos_mid else None
+            # intra_neg_mem: same user, different mid, deterministic seed
+            neg_candidates = [m for m in mems_full if m["mid"] != pos_mid]
+            intra_neg_m = neg_candidates[rng.randint(0, len(neg_candidates) - 1)] if neg_candidates else None
+            valid = k_personal >= 2 and prov_pos_m is not None and intra_neg_m is not None
+            prov_pos_texts.append(prov_pos_m["text"] if prov_pos_m else None)
+            intra_neg_texts.append(intra_neg_m["text"] if intra_neg_m else None)
+            prov_pos_item_ids_list.append(prov_pos_m["item_ids"] if prov_pos_m else None)
+            lmem_x_mask.append(valid)
+            pos_mid_list.append(pos_mid)
+
     n = len(selected_queries)
     wrong_mems = [selected_mems[(j + 1) % n] for j in range(n)]
-    return selected_queries, selected_mems, wrong_mems, valid_idx, selected_xs
+
+    prov_data = None
+    if user_pos_mids is not None:
+        prov_data = {
+            "prov_pos_texts": prov_pos_texts,
+            "intra_neg_texts": intra_neg_texts,
+            "prov_pos_item_ids": prov_pos_item_ids_list,
+            "lmem_x_mask": lmem_x_mask,
+            "pos_mid_list": pos_mid_list,
+        }
+
+    return selected_queries, selected_mems, wrong_mems, valid_idx, selected_xs, prov_data
 
 
 @torch.no_grad()
@@ -782,7 +933,7 @@ def _eval_val_loss(
         pos_np = np.stack(poss)
         neg_np = np.stack(negs)
 
-        q_texts, m_texts, _, valid_idx, _ = _route_batch(
+        q_texts, m_texts, _, valid_idx, _, _prov = _route_batch(
             uid_np, user_queries, user_memories, text_enc, rng
         )
         if not valid_idx:
@@ -1070,7 +1221,7 @@ def run_training(args: SimpleNamespace) -> None:
         for m in mems
     }
     print(f"[data] queries: {pairs_jsonl}")
-    user_queries, user_source_ids = _load_pseudo_queries(pairs_jsonl, mid_to_uid=mid_to_uid)
+    user_queries, user_source_ids, user_pos_mids = _load_pseudo_queries(pairs_jsonl, mid_to_uid=mid_to_uid)
     print(f"[data] {len(user_queries)} users with pseudo-queries")
 
     # Pre-training routing accuracy check (confirms ~0.94 for STEP2b, ~0.96 for STEP2a)
@@ -1102,6 +1253,13 @@ def run_training(args: SimpleNamespace) -> None:
     enc_params0 = torch.cat([p.data.flatten() for p in text_enc._model.parameters()]).clone()
     enc_norm0 = enc_params0.norm().item()
 
+    # ── v0.4.22 beta args ────────────────────────────────────────────────────
+    beta_mem_x = getattr(args, "beta_mem_x", 0.0)
+    beta_mem_wtrain = getattr(args, "beta_mem_wtrain", 0.0)
+    use_lmem = (beta_mem_x > 0.0 or beta_mem_wtrain > 0.0)
+    print(f"[train] beta_mem_x={beta_mem_x}  beta_mem_wtrain={beta_mem_wtrain}  "
+          f"use_lmem={use_lmem}")
+
     # ── Training loop ────────────────────────────────────────────────────────
     best_val_loss = float("inf")
     no_improve = 0
@@ -1109,6 +1267,7 @@ def run_training(args: SimpleNamespace) -> None:
     for epoch in range(1, args.num_epochs + 1):
         model.train(); text_enc.train(); projector.train()
         epoch_l_ret = epoch_l_align = epoch_l_contr = 0.0
+        epoch_l_memx = epoch_l_memwt = 0.0
         epoch_steps = routed_total = batch_total = 0
 
         for step in range(1, steps_per_epoch + 1):
@@ -1122,11 +1281,13 @@ def run_training(args: SimpleNamespace) -> None:
             batch_total += uid_arr.shape[0]
 
             # Routing: eval + no_grad → top-1 memory selection per user
+            # When use_lmem, also build prov_data (provenance path for L_mem).
             text_enc.eval()
             with torch.no_grad():
-                q_texts, m_texts, w_texts, valid_idx, src_ids = _route_batch(
+                q_texts, m_texts, w_texts, valid_idx, src_ids, prov_data = _route_batch(
                     uid_arr, user_queries, user_memories, text_enc, rng,
                     user_source_ids=user_source_ids,
+                    user_pos_mids=user_pos_mids if use_lmem else None,
                 )
             text_enc.train()
 
@@ -1134,11 +1295,21 @@ def run_training(args: SimpleNamespace) -> None:
                 continue
             routed_total += len(valid_idx)
 
+            # Capture W_train (pos last col) BEFORE X-replacement inside train_step.
+            # Must index with valid_idx before subsetting pos_np.
+            w_train_ids = pos_np[valid_idx, -1].copy() if use_lmem else None
+
             # Subset batch to routed users; train_step re-encodes with grad
             seq_np = seq_np[valid_idx]
             pos_np = pos_np[valid_idx]
             neg_np = neg_np[valid_idx]
             src_ids_np = np.array(src_ids, dtype=np.int32)
+
+            # Unpack prov_data for train_step (None when use_lmem=False)
+            prov_pos_texts = prov_data["prov_pos_texts"] if prov_data else None
+            intra_neg_texts = prov_data["intra_neg_texts"] if prov_data else None
+            prov_pos_item_ids = prov_data["prov_pos_item_ids"] if prov_data else None
+            lmem_x_mask = prov_data["lmem_x_mask"] if prov_data else None
 
             metrics = train_step(
                 model=model,
@@ -1155,11 +1326,20 @@ def run_training(args: SimpleNamespace) -> None:
                 device=device,
                 use_contrastive=args.use_contrastive,
                 source_item_ids_np=src_ids_np,
+                beta_mem_x=beta_mem_x,
+                beta_mem_wtrain=beta_mem_wtrain,
+                prov_pos_texts=prov_pos_texts,
+                intra_neg_texts=intra_neg_texts,
+                prov_pos_item_ids=prov_pos_item_ids,
+                lmem_x_mask=lmem_x_mask,
+                w_train_ids=w_train_ids,
             )
 
             epoch_l_ret += metrics["L_retrieval"]
             epoch_l_align += metrics["L_align"]
             epoch_l_contr += metrics.get("L_contrastive", 0.0)
+            epoch_l_memx += metrics.get("L_mem_X", 0.0)
+            epoch_l_memwt += metrics.get("L_mem_Wtrain", 0.0)
             epoch_steps += 1
 
             if step % 200 == 0:
@@ -1167,12 +1347,17 @@ def run_training(args: SimpleNamespace) -> None:
                       f"L_ret={metrics['L_retrieval']:.4f}  "
                       f"L_align={metrics['L_align']:.4f}  "
                       f"L_contr={metrics.get('L_contrastive', 0):.4f}  "
+                      f"L_mem_X={metrics.get('L_mem_X', 0):.4f}  "
+                      f"L_mem_Wtr={metrics.get('L_mem_Wtrain', 0):.4f}  "
+                      f"n_x={metrics.get('n_valid_x', 0)}  n_wt={metrics.get('n_valid_wtrain', 0)}  "
                       f"L={metrics['L']:.4f}  grad={metrics['grad_norm']:.4f}")
 
-        avg_l_ret   = epoch_l_ret   / max(epoch_steps, 1)
-        avg_l_align = epoch_l_align / max(epoch_steps, 1)
-        avg_l_contr = epoch_l_contr / max(epoch_steps, 1)
-        routing_cov = routed_total / max(batch_total, 1)
+        avg_l_ret    = epoch_l_ret   / max(epoch_steps, 1)
+        avg_l_align  = epoch_l_align / max(epoch_steps, 1)
+        avg_l_contr  = epoch_l_contr / max(epoch_steps, 1)
+        avg_l_memx   = epoch_l_memx  / max(epoch_steps, 1)
+        avg_l_memwt  = epoch_l_memwt / max(epoch_steps, 1)
+        routing_cov  = routed_total / max(batch_total, 1)
 
         val_loss = _eval_val_loss(
             model, text_enc, projector, dataset,
@@ -1201,6 +1386,7 @@ def run_training(args: SimpleNamespace) -> None:
 
         print(f"\nEpoch {epoch}/{args.num_epochs}  "
               f"L_ret={avg_l_ret:.4f}  L_align={avg_l_align:.4f}  L_contr={avg_l_contr:.4f}  "
+              f"L_mem_X={avg_l_memx:.4f}  L_mem_Wtr={avg_l_memwt:.4f}  "
               f"val_L_ret={val_loss:.4f}  routing_cov={routing_cov:.3f}")
         print(f"  Ctrl: J(c,w)={ctrl['J_cw']:.4f}  J(c,v)={ctrl['J_cv']:.4f}  "
               f"J(c,cs2)={ctrl['J_cs2']:.4f}  gap={gap:+.4f} [{gap_label}]")
@@ -1254,6 +1440,220 @@ def run_training(args: SimpleNamespace) -> None:
 # ---------------------------------------------------------------------------
 # Main
 
+def run_smoke_lmem(args: SimpleNamespace) -> None:
+    """L_mem smoke test — 4 modes × 1-2 batches. No full retraining. SPEC v0.4.22.
+
+    Modes:
+      base              — beta_mem_x=0, beta_mem_wtrain=0  (baseline)
+      x-only            — beta_mem_x=1, beta_mem_wtrain=0
+      wtrain-only       — beta_mem_x=0, beta_mem_wtrain=1
+      combined          — beta_mem_x=1, beta_mem_wtrain=1  (smoke only, full training forbidden)
+    """
+    device = getattr(args, "device", "cpu")
+    seed = getattr(args, "seed", 42)
+    bank_jsonl = getattr(args, "bank_jsonl", None) or "data/memory/Books/f3_bank.jsonl"
+    pairs_jsonl = getattr(args, "pairs_jsonl", None) or (
+        f"data/processed/{getattr(args, 'category', 'Books')}/align_pairs.jsonl"
+    )
+    maxlen = getattr(args, "maxlen", 200)
+    alpha = getattr(args, "alpha", 0.1)
+    batch_size = min(getattr(args, "batch_size", 64), 32)  # cap at 32 for smoke speed
+
+    print(f"\n[smoke_lmem] === SPEC v0.4.22 L_mem smoke ===")
+    print(f"[smoke_lmem] bank={bank_jsonl}")
+    print(f"[smoke_lmem] pairs={pairs_jsonl}")
+    print(f"[smoke_lmem] device={device}  maxlen={maxlen}  alpha={alpha}")
+
+    # ── Load data ──────────────────────────────────────────────────────────
+    print("[smoke_lmem] Loading bank ...")
+    user_memories = _load_bank_full(bank_jsonl)
+    mid_to_uid = {m["mid"]: uid for uid, mems in user_memories.items() for m in mems}
+    print(f"[smoke_lmem] {len(user_memories)} users, {len(mid_to_uid)} mids")
+
+    print("[smoke_lmem] Loading pseudo-queries ...")
+    user_queries, user_source_ids, user_pos_mids = _load_pseudo_queries(
+        pairs_jsonl, mid_to_uid=mid_to_uid
+    )
+    print(f"[smoke_lmem] {len(user_queries)} users with queries")
+
+    print("[smoke_lmem] Loading text encoder ...")
+    text_enc = TextEncoder(device=device)
+    if getattr(args, "stage1_ckpt", None):
+        load_stage1_weights(args.stage1_ckpt, text_enc)
+    else:
+        print("[smoke_lmem] stage1_ckpt not set — using raw BGE")
+
+    print("[smoke_lmem] Loading SASRec checkpoint ...")
+    ckpt = torch.load(args.checkpoint, map_location=device)
+    saved = ckpt["args"]
+    if isinstance(saved, dict):
+        saved = SimpleNamespace(**saved)
+    sas_args = SimpleNamespace(
+        maxlen=getattr(saved, "maxlen", maxlen),
+        hidden_units=getattr(saved, "hidden_units", 128),
+        num_blocks=getattr(saved, "num_blocks", 2),
+        num_heads=getattr(saved, "num_heads", 1),
+        dropout_rate=getattr(saved, "dropout_rate", 0.5),
+        norm_first=getattr(saved, "norm_first", False),
+        device=device,
+    )
+    usernum = ckpt.get("usernum", getattr(saved, "usernum", 100000))
+    itemnum = ckpt.get("itemnum", getattr(saved, "itemnum", 100000))
+    model = SASRec(usernum, itemnum, sas_args).to(device)
+    model.load_state_dict(ckpt["model_state_dict"])
+    for p in model.parameters():
+        p.requires_grad_(False)
+    model.eval()
+    print(f"[smoke_lmem] SASRec frozen  d={sas_args.hidden_units}  items={itemnum}")
+
+    projector = IntentProjector(text_enc.dim, sas_args.hidden_units).to(device)
+    if getattr(args, "proj_ckpt", None):
+        pc = torch.load(args.proj_ckpt, map_location=device)
+        projector.load_state_dict(pc.get("projector_state", pc))
+        print(f"[smoke_lmem] projector loaded from {args.proj_ckpt}")
+
+    optimizer = torch.optim.Adam(
+        list(text_enc.parameters()) + list(projector.parameters()), lr=1e-4
+    )
+
+    # ── Minimal dataset for seq/pos/neg ──────────────────────────────────────
+    cat = getattr(args, "category", "Books")
+    data_dir = getattr(args, "data_dir", "data/processed")
+    dataset = load_data(cat, data_dir)
+    sampler = WarpSampler(
+        dataset["user_train"], dataset["usernum"], dataset["itemnum"],
+        batch_size=batch_size, maxlen=sas_args.maxlen, n_workers=1,
+    )
+
+    rng = random.Random(seed)
+    u_it, s_it, p_it, n_it = sampler.next_batch()
+    uid_arr  = np.array(list(u_it), dtype=np.int32)
+    seq_np0  = np.array(list(s_it), dtype=np.int32)
+    pos_np0  = np.array(list(p_it), dtype=np.int32)
+    neg_np0  = np.array(list(n_it), dtype=np.int32)
+
+    # Route with prov_data (always build, for all 4 modes)
+    text_enc.eval()
+    with torch.no_grad():
+        q_texts, m_texts, w_texts, valid_idx, src_ids, prov_data = _route_batch(
+            uid_arr, user_queries, user_memories, text_enc, rng,
+            user_source_ids=user_source_ids,
+            user_pos_mids=user_pos_mids,
+        )
+    text_enc.train()
+
+    sampler.close()
+
+    if not valid_idx:
+        print("[smoke_lmem] ERROR: no valid routed users in first batch — check data paths")
+        return
+
+    w_train_ids = pos_np0[valid_idx, -1].copy()  # pre-X-replacement
+    seq_np  = seq_np0[valid_idx]
+    pos_np  = pos_np0[valid_idx]
+    neg_np  = neg_np0[valid_idx]
+    src_ids_np = np.array(src_ids, dtype=np.int32)
+
+    prov_pos_texts   = prov_data["prov_pos_texts"]   if prov_data else None
+    intra_neg_texts  = prov_data["intra_neg_texts"]  if prov_data else None
+    prov_pos_item_ids= prov_data["prov_pos_item_ids"]if prov_data else None
+    lmem_x_mask      = prov_data["lmem_x_mask"]      if prov_data else None
+    n_valid_lmem = sum(1 for v in lmem_x_mask if v) if lmem_x_mask else 0
+
+    B = len(valid_idx)
+    print(f"\n[smoke_lmem] Batch stats: B={B}  n_valid_lmem(K≥2+prov)={n_valid_lmem}")
+
+    # Count W_train in A+B (W==X or W in prov_pos_item_ids)
+    if lmem_x_mask and prov_pos_item_ids and src_ids_np is not None:
+        ab_count = 0
+        for i, v in enumerate(lmem_x_mask):
+            if not v:
+                continue
+            w = int(w_train_ids[i])
+            x = int(src_ids_np[i])
+            iids = prov_pos_item_ids[i]
+            if w == x or (iids and w in iids):
+                ab_count += 1
+        print(f"[smoke_lmem] A+B count (Wtrain valid): {ab_count}/{n_valid_lmem}")
+
+    # ── 4-mode smoke loop ─────────────────────────────────────────────────
+    MODES = [
+        ("base",         0.0, 0.0),
+        ("x-only",       1.0, 0.0),
+        ("wtrain-only",  0.0, 1.0),
+        ("combined",     1.0, 1.0),
+    ]
+
+    results = []
+    for mode_name, bmx, bmwt in MODES:
+        # Reset projector + encoder grad state between modes
+        optimizer.zero_grad()
+        text_enc.train()
+        projector.train()
+
+        try:
+            metrics = train_step(
+                model=model,
+                text_encoder=text_enc,
+                projector=projector,
+                optimizer=optimizer,
+                query_texts=q_texts,
+                memory_texts=m_texts,
+                wrong_memory_texts=w_texts,
+                seq_np=seq_np,
+                pos_np=pos_np,
+                neg_np=neg_np,
+                alpha=alpha,
+                device=device,
+                use_contrastive=False,
+                source_item_ids_np=src_ids_np,
+                beta_mem_x=bmx,
+                beta_mem_wtrain=bmwt,
+                prov_pos_texts=prov_pos_texts,
+                intra_neg_texts=intra_neg_texts,
+                prov_pos_item_ids=prov_pos_item_ids,
+                lmem_x_mask=lmem_x_mask,
+                w_train_ids=w_train_ids,
+            )
+            status = "OK"
+        except Exception as e:
+            metrics = {}
+            status = f"ERROR: {e}"
+
+        results.append((mode_name, bmx, bmwt, metrics, status))
+        print(f"\n[smoke_lmem] mode={mode_name}  beta_x={bmx}  beta_wt={bmwt}  status={status}")
+        if metrics:
+            print(f"  L={metrics.get('L', '?'):.6f}  "
+                  f"L_ret={metrics.get('L_retrieval', '?'):.6f}  "
+                  f"L_align={metrics.get('L_align', '?'):.6f}")
+            print(f"  L_mem_X={metrics.get('L_mem_X', '?'):.6f}  "
+                  f"L_mem_Wtrain={metrics.get('L_mem_Wtrain', '?'):.6f}  "
+                  f"n_valid_x={metrics.get('n_valid_x', '?')}  "
+                  f"n_valid_wtrain={metrics.get('n_valid_wtrain', '?')}  "
+                  f"grad_norm={metrics.get('grad_norm', '?'):.6f}")
+
+    # ── Summary table ──────────────────────────────────────────────────────
+    print("\n[smoke_lmem] ══════════════ SUMMARY ══════════════")
+    print(f"{'mode':<20} {'beta_x':>6} {'beta_wt':>7} {'L':>10} {'L_mem_X':>10} "
+          f"{'L_mem_Wtr':>10} {'n_x':>5} {'n_wt':>5} {'grad':>10} {'status'}")
+    for mode_name, bmx, bmwt, metrics, status in results:
+        print(f"{mode_name:<20} {bmx:>6.1f} {bmwt:>7.1f} "
+              f"{metrics.get('L', 0):>10.6f} "
+              f"{metrics.get('L_mem_X', 0):>10.6f} "
+              f"{metrics.get('L_mem_Wtrain', 0):>10.6f} "
+              f"{metrics.get('n_valid_x', 0):>5} "
+              f"{metrics.get('n_valid_wtrain', 0):>5} "
+              f"{metrics.get('grad_norm', 0):>10.6f}  {status}")
+    print("[smoke_lmem] ════════════════════════════════════════")
+    print("[smoke_lmem] Backward compat check: base mode L should match SPEC baseline.")
+    base_metrics = results[0][3]
+    if base_metrics:
+        print(f"  base L_mem_X={base_metrics.get('L_mem_X', '?')}  "
+              f"L_mem_Wtrain={base_metrics.get('L_mem_Wtrain', '?')}  "
+              f"(both must be 0.0 for beta=0 compat)")
+    print("[smoke_lmem] DONE — full training prohibited by SPEC v0.4.22")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke", action="store_true", help="Run CPU smoke test")
@@ -1294,9 +1694,19 @@ def main() -> None:
     parser.add_argument("--proj_ckpt", type=str, default=None,
                         help="Warm-start projector from a stage2 checkpoint "
                              "(loads projector_state). Default: cold random init.")
+    # v0.4.22 L_mem args — default=0.0 → backward compatible (no new computation when 0)
+    parser.add_argument("--beta_mem_x", type=float, default=0.0,
+                        help="L_mem_X weight (causal memory loss). 0=off (SPEC default).")
+    parser.add_argument("--beta_mem_wtrain", type=float, default=0.0,
+                        help="L_mem_Wtrain_aligned weight (A+B ablation). 0=off (SPEC default).")
+    parser.add_argument("--smoke_lmem", action="store_true",
+                        help="Run L_mem smoke test (4 modes, 1-2 batches each). "
+                             "Requires --bank_jsonl and --pairs_jsonl.")
     cli = parser.parse_args()
 
-    if cli.smoke or cli.bank_jsonl is None:
+    if cli.smoke_lmem:
+        run_smoke_lmem(cli)
+    elif cli.smoke or cli.bank_jsonl is None:
         run_smoke(cli)
     else:
         run_training(cli)
