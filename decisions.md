@@ -20,7 +20,43 @@
 >
 > - **STEP2 구현 smoke — 통과, 그러나 full training 금지 상태 유지**: 보고 기준 `train_hybrid.py`에 `--beta_mem_x`/`--beta_mem_wtrain`(둘 다 default 0.0), `L_mem_X`, `L_mem_Wtrain_aligned`, `smoke_lmem`가 추가되었고 base/x-only/wtrain-only/combined 4모드 smoke는 통과했다. base에서 L_mem 값 0 확인. 단 이 보고는 문서 업데이트 이전 코드 선행 상태였으므로, 본 v0.4.22로 SPEC을 명문화한다.
 >
-> - **남은 blocker — X_in_seq self-reconstruction audit**: `L_mem_X`가 main이 되면서 새로운 감사가 필요해졌다. `X`가 input `seq`에 이미 포함되면 seen-item self-reconstruction이 될 수 있다. full training 전 N≥2,000에서 `X_in_seq` 비율, `X_in_seq=True/False`별 ΔzX, β=0 route/loss backward-compatibility, val/test target 비참조를 코드 줄+로그로 확인한다. 이 gate 통과 전 재학습 금지.
+> - **★STEP2G 감사 결과 (N=2,000 seed=42) — FULL TRAINING: FORBIDDEN**:
+>   `scripts/step2g_xinseq_audit.py` 실행 완료(재학습 없음, 읽기·계산 전용).
+>
+>   | 항목 | 값 |
+>   |------|-----|
+>   | total samples | 2,000 |
+>   | K≥2 valid (L_mem_X 적용 가능) | 1,146 (57.3%) |
+>   | X_in_seq=True (self-reconstruction 위험) | **1,005 (87.7%)** |
+>   | X_in_seq=False | 141 (12.3%) |
+>   | A_eq_wtrain (X==W_train) | 141 (12.3%) |
+>   | B_in_seq_before_wtrain (X in seq, X≠W_train) | 1,005 (87.7%) |
+>   | C_not_found (X 학습이력 미포함) | 0 (0.0%) |
+>   | X_in_seq=True mean ΔzX / pos_frac | 0.0098 / 0.584 |
+>   | X_in_seq=False mean ΔzX / pos_frac | 0.0270 / 0.567 |
+>
+>   **판정**: X_in_seq ratio 87.7% ≥ threshold 30% → self-reconstruction 리스크 CRITICAL → **FULL TRAINING: FORBIDDEN**.
+>   C=0% 확인: align_pairs.source_item_id는 항상 user_train에 있음(설계 일관성 OK).
+>
+>   **β=0 backward-compatibility (smoke_lmem 4모드)**:
+>   | mode | beta_x | beta_wt | L_mem_X | L_mem_Wtr | status |
+>   |------|--------|---------|---------|-----------|--------|
+>   | base | 0.0 | 0.0 | 0.000000 | 0.000000 | OK |
+>   | x-only | 1.0 | 0.0 | 0.840727 | 0.000000 | OK |
+>   | wtrain-only | 0.0 | 1.0 | 0.000000 | 0.665210 | OK |
+>   | combined | 1.0 | 1.0 | 0.625640 | 0.588350 | OK |
+>   base에서 L_mem_X=L_mem_Wtr=0.000000 확인 → β=0은 기존 L_ret+α·L_align 경로와 완전히 동일.
+>
+>   **코드 line 증거**:
+>   - intra_neg_mem same-user diff-cluster: `train_hybrid.py:783-784` — `neg_candidates = [m for m in mems_full if m["mid"] != pos_mid]` / `intra_neg_m = neg_candidates[rng.randint(...)]`
+>   - K=1 mask: `train_hybrid.py:785` — `valid = k_personal >= 2 and prov_pos_m is not None and intra_neg_m is not None`
+>   - Wtrain A+B mask: `train_hybrid.py:398-406` — `if w == x or (item_ids is not None and w in item_ids): valid_wt_idx.append(i)`
+>   - val/test 미참조: `train_hybrid.py:1233-1236` — `WarpSampler(dataset["user_train"], dataset["usernum"], dataset["itemnum"], ...)` — user_train만 전달
+>
+>   **해결안 후보** (A/B/C 중 하나 선택 후 SPEC 갱신 → 재학습 가능):
+>   A) L_mem_X를 pos_class A(X==W_train) 샘플만으로 한정(유효 12.3%, 141개)
+>   B) prefix sequence 빌드 시 X를 제외(`seq_before_X` 구성)하여 self-reconstruction 차단
+>   C) L_mem_X를 diagnostic/ablation으로 강등, L_mem_Wtrain_aligned를 main으로 격상
 >
 
 > **v0.4.21 (근본병목 확정 — 원인 A: prefix→score 방향 gradient 부재 · L_mem(score-space contrast) 제안)** — 재포지셔닝 사망 후, prefix→score 전달을 진단해 top-K 0/B 죽음/recovery 실패의 *단일 원인*을 국소화. 구조(B) 아닌 목적함수(A). 다음 = score-space memory contrast 1개 추가(E-2 반면교사 철저). **이 블록이 본문·이전 changelog의 상충 기술을 우선한다.**
